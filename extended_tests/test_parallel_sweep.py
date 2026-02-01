@@ -16,7 +16,7 @@ def _read_json(path: Path) -> dict[str, Any]:
 def test_parallel_sweep_produces_complete_artifacts(tmp_path: Path) -> None:
     out = tmp_path / "_out"
     params = Params(
-        runs=10,
+        runs=20,
         thresholds=[0.25, 0.5, 0.7, 0.8],
         out=out,
         seed_base=777,
@@ -25,7 +25,7 @@ def test_parallel_sweep_produces_complete_artifacts(tmp_path: Path) -> None:
     )
 
     results, zip_path = run(params)
-    assert len(results) == 10
+    assert len(results) == 20
     assert zip_path is not None and zip_path.exists()
 
     overview_path = out / "overview.json"
@@ -35,7 +35,7 @@ def test_parallel_sweep_produces_complete_artifacts(tmp_path: Path) -> None:
 
     manifest = _read_json(manifest_path)
     assert manifest["name"] == "EchoNull"
-    assert manifest["runs"] == 10
+    assert manifest["runs"] == 20
     assert manifest["overview_sha256"] == compute_sha256(overview_path)
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -43,7 +43,7 @@ def test_parallel_sweep_produces_complete_artifacts(tmp_path: Path) -> None:
         assert "overview.json" in names
         assert "manifest.json" in names
 
-        for run_id in range(1, 11):
+        for run_id in range(1, 21):
             prefix = f"run_{run_id:04d}/"
             assert f"{prefix}multi.csv" in names
             assert f"{prefix}delta_stats/stats.json" in names
