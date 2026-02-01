@@ -30,7 +30,7 @@ def patch_nulltrace_file(path: Path) -> None:
     # This makes `.append(...)` valid on the declared type.
     text = text.replace("Collection[Collection[str]]", "list[list[str]]")
 
-    # If we removed all uses of Collection[...] from the file, clean up imports too.
+    # If no `Collection[` remains, remove Collection from typing imports.
     if "Collection[" not in text:
         text = _remove_collection_from_typing_imports(text)
 
