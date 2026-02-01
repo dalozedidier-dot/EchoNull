@@ -9,7 +9,7 @@ import pandas as pd
 def _clean_text(value: str) -> str:
     s = value.strip()
 
-    # Certains exports CSV GitHub contiennent des guillemets et des backslashes parasites.
+    # Some GitHub Actions usage CSV exports contain extra quotes and backslashes.
     if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
         s = s[1:-1]
 
