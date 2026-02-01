@@ -8,11 +8,16 @@ import pandas as pd
 
 
 def _clean_text(s: str) -> str:
-    # Handles values like: "\"'hosted\"" or "\".github/workflows/ci.yml\""
+    """Normalize text fields from GitHub Actions usage CSV exports.
+
+    Some exports contain extra quoting / escaping, e.g.
+    - "\"'hosted\"" (runner type)
+    - "\".github/workflows/ci.yml\"" (workflow path)
+    """
     s = s.strip()
-    s = re.sub(r'^"\'', "", s)
+    s = re.sub(r'^"\\\'', "", s)
     s = re.sub(r'"$', "", s)
-    s = s.replace("\\", "")
+    s = s.replace("\\\\", "")
     return s.strip()
 
 
@@ -20,9 +25,9 @@ def _clean_columns(cols: list[str]) -> list[str]:
     out: list[str] = []
     for c in cols:
         c2 = c.strip()
-        c2 = re.sub(r'^"\'', "", c2)
+        c2 = re.sub(r'^"\\\'', "", c2)
         c2 = re.sub(r'"$', "", c2)
-        c2 = c2.replace("\\", "")
+        c2 = c2.replace("\\\\", "")
         out.append(c2.strip())
     return out
 
