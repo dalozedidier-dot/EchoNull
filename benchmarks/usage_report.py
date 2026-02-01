@@ -1,20 +1,22 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-_PREFIX_RE = re.compile(r'^"\\\'')
-_SUFFIX_RE = re.compile(r'"$')
 
+def _clean_text(value: object) -> str:
+    s = str(value).strip()
 
-def _clean_text(s: str) -> str:
-    s = s.strip()
-    s = _PREFIX_RE.sub("", s)
-    s = _SUFFIX_RE.sub("", s)
-    s = s.replace("\\\\", "")
+    s = s.replace("\\", "").strip()
+
+    if len(s) >= 2 and s.startswith('"') and s.endswith('"'):
+        s = s[1:-1]
+
+    if s.startswith("'"):
+        s = s[1:]
+
     return s.strip()
 
 
@@ -25,9 +27,11 @@ def _clean_columns(cols: list[str]) -> list[str]:
 def load_usage_csv(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path)
     df.columns = _clean_columns(list(df.columns))
+
     for col in df.columns:
         if df[col].dtype == object:
             df[col] = df[col].astype(str).map(_clean_text)
+
     return df
 
 
@@ -44,9 +48,11 @@ def summarize_usage(fixtures_dir: Path) -> dict[str, Any]:
         by_workflow["avg_run_s"] = by_workflow["Avg run time"] / 1000.0
 
     test_row = by_job.loc[by_job["Job"] == "test"].iloc[0].to_dict()
-    ci_row = by_workflow.loc[
-        by_workflow["Workflow"] == ".github/workflows/ci.yml"
-    ].iloc[0].to_dict()
+    ci_row = (
+        by_workflow.loc[by_workflow["Workflow"] == ".github/workflows/ci.yml"]
+        .iloc[0]
+        .to_dict()
+    )
     overall_row = overall.iloc[0].to_dict()
 
     return {
