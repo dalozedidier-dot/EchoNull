@@ -7,7 +7,7 @@ import zipfile
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ from mark_counts.analyzer import MarkCountsAnalyzer
 @dataclass(frozen=True)
 class Params:
     runs: int
-    thresholds: List[float]
+    thresholds: list[float]
     out: Path
     seed_base: int
     workers: int
@@ -37,7 +37,7 @@ def _generate_dataset_csv(path: Path, seed: int, rows: int = 256, cols: int = 8)
 
 
 @perf_timer
-def process_run(run_id: int, params: Params) -> Dict[str, Any]:
+def process_run(run_id: int, params: Params) -> dict[str, Any]:
     seed = params.seed_base + run_id
     run_dir = params.out / f"run_{run_id:04d}"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -51,7 +51,7 @@ def process_run(run_id: int, params: Params) -> Dict[str, Any]:
         MarkCountsAnalyzer(),
     ]
 
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
     for analyzer in analyzers:
         results.update(analyzer.analyze(run_id, seed, None, run_dir))
 
@@ -60,7 +60,7 @@ def process_run(run_id: int, params: Params) -> Dict[str, Any]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="rifttrace-orchestrator", description="RiftTrace sweep runner")
+    p = argparse.ArgumentParser(prog="echonull-orchestrator", description="EchoNull sweep runner")
     p.add_argument("--runs", type=int, default=10)
     p.add_argument("--thresholds", type=str, default="0.25,0.5,0.7,0.8")
     p.add_argument("--out", type=str, default="_out")
@@ -70,13 +70,13 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def _parse_thresholds(s: str) -> List[float]:
+def _parse_thresholds(s: str) -> list[float]:
     parts = [x.strip() for x in s.split(",") if x.strip()]
     return [float(x) for x in parts]
 
 
 @perf_timer
-def run(params: Params) -> Tuple[List[Dict[str, Any]], Path | None]:
+def run(params: Params) -> tuple[list[dict[str, Any]], Path | None]:
     params.out.mkdir(parents=True, exist_ok=True)
 
     with ProcessPoolExecutor(max_workers=params.workers) as pool:
@@ -84,17 +84,23 @@ def run(params: Params) -> Tuple[List[Dict[str, Any]], Path | None]:
         results = [f.result() for f in futures]
 
     overview_path = params.out / "overview.json"
-    overview_path.write_text(json.dumps(results, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    overview_path.write_text(
+        json.dumps(results, separators=(",", ":"), ensure_ascii=False),
+        encoding="utf-8",
+    )
 
     manifest = {
-        "name": "RiftTrace",
+        "name": "EchoNull",
         "runs": params.runs,
         "thresholds": params.thresholds,
         "seed_base": params.seed_base,
         "overview_sha256": compute_sha256(overview_path),
     }
     manifest_path = params.out / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, separators=(",", ":"), ensure_ascii=False),
+        encoding="utf-8",
+    )
 
     zip_path: Path | None = None
     if params.zip_out:
@@ -111,7 +117,7 @@ def _zip_dir(src_dir: Path, zip_path: Path) -> None:
                 zf.write(p, arcname=p.relative_to(src_dir))
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -11,13 +11,13 @@ from common.utils import AnalyzerProtocol, perf_timer
 
 
 class GraphAnalysisAnalyzer(AnalyzerProtocol):
-    def __init__(self, thresholds: List[float] | None = None):
+    def __init__(self, thresholds: list[float] | None = None):
         self.thresholds = thresholds if thresholds is not None else [0.25, 0.5, 0.7, 0.8]
 
     @perf_timer
-    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> Dict[str, Any]:
+    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> dict[str, Any]:
         np.random.seed(seed)
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
 
         out = output_dir / "graph_analysis"
         out.mkdir(parents=True, exist_ok=True)
@@ -31,8 +31,9 @@ class GraphAnalysisAnalyzer(AnalyzerProtocol):
             jaccard = 1.0 if run_id % 2 == 0 else float(np.random.uniform(0.9, 1.0))
 
             report_path = out / f"thr_{thr:.2f}_report.json"
+            payload = {"nodes": n_nodes, "edges": n_edges, "jaccard": jaccard}
             report_path.write_text(
-                json.dumps({"nodes": n_nodes, "edges": n_edges, "jaccard": jaccard}, separators=(",", ":")),
+                json.dumps(payload, separators=(",", ":")),
                 encoding="utf-8",
             )
 

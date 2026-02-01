@@ -3,11 +3,12 @@ from __future__ import annotations
 import hashlib
 import logging
 import time
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, Protocol, TypeVar, cast
+from typing import Any, Protocol, TypeVar, cast
 
-logger = logging.getLogger("RiftTrace")
+logger = logging.getLogger("EchoNull")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -36,5 +37,5 @@ def perf_timer(func: F) -> F:
 
 
 class AnalyzerProtocol(Protocol):
-    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> Dict[str, Any]:
+    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> dict[str, Any]:
         ...

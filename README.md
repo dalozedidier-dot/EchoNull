@@ -1,4 +1,4 @@
-# RiftTrace
+# EchoNull
 
 Monorepo Python 3.12+ structuré en modules isolés, nommés par fonction.
 Objectif : exécuter des sweeps multi-runs rapidement avec une base CI stricte.
@@ -27,7 +27,7 @@ pytest -q --cov --cov-report=term-missing --cov-fail-under=100
 
 ## Lancer un sweep minimal
 ```bash
-python -m orchestrator.run --runs 5 --out _out --zip
+PYTHONPATH=src python -m orchestrator.run --runs 5 --out _out --zip
 ```
 
 Notes

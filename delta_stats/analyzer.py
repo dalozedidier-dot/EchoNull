@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
@@ -11,7 +11,7 @@ from common.utils import AnalyzerProtocol, perf_timer
 
 class DeltaStatsAnalyzer(AnalyzerProtocol):
     @perf_timer
-    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> Dict[str, Any]:
+    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> dict[str, Any]:
         np.random.seed(seed)
 
         # Deltas très petits avec queue lognormale

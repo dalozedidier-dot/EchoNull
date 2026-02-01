@@ -1,4 +1,4 @@
 # Changelog
 
 ## 0.1.0
-- Squelette initial RiftTrace (modules isolés + CI + tests + benchmark minimal)
+- Squelette initial EchoNull (modules isolés + CI + tests + benchmark minimal)

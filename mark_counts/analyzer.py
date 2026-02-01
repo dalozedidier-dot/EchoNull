@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from common.utils import AnalyzerProtocol, perf_timer
 
 class MarkCountsAnalyzer(AnalyzerProtocol):
     @perf_timer
-    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> Dict[str, Any]:
+    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> dict[str, Any]:
         np.random.seed(seed)
         count = int(np.random.randint(1, 5))
         out = output_dir / "mark_counts"
