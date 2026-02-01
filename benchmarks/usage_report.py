@@ -6,30 +6,20 @@ from typing import Any
 
 import pandas as pd
 
+_PREFIX_RE = re.compile(r'^"\\\'')
+_SUFFIX_RE = re.compile(r'"$')
+
 
 def _clean_text(s: str) -> str:
-    """Normalize text fields from GitHub Actions usage CSV exports.
-
-    Some exports contain extra quoting / escaping, e.g.
-    - "\"'hosted\"" (runner type)
-    - "\".github/workflows/ci.yml\"" (workflow path)
-    """
     s = s.strip()
-    s = re.sub(r'^"\\\'', "", s)
-    s = re.sub(r'"$', "", s)
+    s = _PREFIX_RE.sub("", s)
+    s = _SUFFIX_RE.sub("", s)
     s = s.replace("\\\\", "")
     return s.strip()
 
 
 def _clean_columns(cols: list[str]) -> list[str]:
-    out: list[str] = []
-    for c in cols:
-        c2 = c.strip()
-        c2 = re.sub(r'^"\\\'', "", c2)
-        c2 = re.sub(r'"$', "", c2)
-        c2 = c2.replace("\\\\", "")
-        out.append(c2.strip())
-    return out
+    return [_clean_text(c) for c in cols]
 
 
 def load_usage_csv(path: Path) -> pd.DataFrame:
@@ -46,7 +36,6 @@ def summarize_usage(fixtures_dir: Path) -> dict[str, Any]:
     by_workflow = load_usage_csv(fixtures_dir / "by_workflow_failure_and_time.csv")
     overall = load_usage_csv(fixtures_dir / "by_runner_type_usage.csv")
 
-    # Convert ms to seconds where present
     if "Avg run time" in by_job.columns:
         by_job["avg_run_s"] = by_job["Avg run time"] / 1000.0
     if "Avg queue time" in by_job.columns:
@@ -55,11 +44,9 @@ def summarize_usage(fixtures_dir: Path) -> dict[str, Any]:
         by_workflow["avg_run_s"] = by_workflow["Avg run time"] / 1000.0
 
     test_row = by_job.loc[by_job["Job"] == "test"].iloc[0].to_dict()
-    ci_row = (
-        by_workflow.loc[by_workflow["Workflow"] == ".github/workflows/ci.yml"]
-        .iloc[0]
-        .to_dict()
-    )
+    ci_row = by_workflow.loc[
+        by_workflow["Workflow"] == ".github/workflows/ci.yml"
+    ].iloc[0].to_dict()
     overall_row = overall.iloc[0].to_dict()
 
     return {
