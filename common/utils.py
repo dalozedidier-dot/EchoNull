@@ -10,7 +10,10 @@ from typing import Any, Protocol, TypeVar, cast
 
 logger = logging.getLogger("EchoNull")
 if not logger.handlers:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
 
 
 def compute_sha256(path: Path) -> str:
@@ -37,5 +40,11 @@ def perf_timer(func: F) -> F:
 
 
 class AnalyzerProtocol(Protocol):
-    def analyze(self, run_id: int, seed: int, data: Any, output_dir: Path) -> dict[str, Any]:
+    def analyze(
+        self,
+        run_id: int,
+        seed: int,
+        data: Any,
+        output_dir: Path,
+    ) -> dict[str, Any]:
         ...
