@@ -1,6 +1,5 @@
-# Force LF line endings in the repo (prevents Black "would reformat" due to CRLF)
-*.py   text eol=lf
-*.yml  text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
 *.yaml text eol=lf
-*.txt  text eol=lf
-*.md   text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
