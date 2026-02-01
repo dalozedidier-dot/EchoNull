@@ -46,5 +46,4 @@ class AnalyzerProtocol(Protocol):
         seed: int,
         data: Any,
         output_dir: Path,
-    ) -> dict[str, Any]:
-        ...
+    ) -> dict[str, Any]: ...
