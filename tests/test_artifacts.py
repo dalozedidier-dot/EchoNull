@@ -53,7 +53,8 @@ def test_manifest_integrity_and_zip_contents(tmp_path: Path) -> None:
             assert f"{prefix}graph_analysis/thr_0.50_report.json" in names
 
         # Validate one graph report payload is well-formed and within expected ranges
-        payload_any = json.loads(zf.read("run_0001/graph_analysis/thr_0.25_report.json").decode("utf-8"))
+        raw = zf.read("run_0001/graph_analysis/thr_0.25_report.json").decode("utf-8")
+        payload_any = json.loads(raw)
         payload = cast(dict[str, Any], payload_any)
         assert set(payload.keys()) == {"nodes", "edges", "jaccard"}
         assert payload["nodes"] == 10
