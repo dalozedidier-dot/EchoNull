@@ -3,14 +3,15 @@ from __future__ import annotations
 import json
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from common.utils import compute_sha256
 from orchestrator.run import Params, run
 
 
 def _load_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    # json.loads returns Any; cast to satisfy mypy --strict (no-any-return)
+    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
 def test_manifest_integrity_and_zip_contents(tmp_path: Path) -> None:
@@ -52,9 +53,8 @@ def test_manifest_integrity_and_zip_contents(tmp_path: Path) -> None:
             assert f"{prefix}graph_analysis/thr_0.50_report.json" in names
 
         # Validate one graph report payload is well-formed and within expected ranges
-        payload = json.loads(
-            zf.read("run_0001/graph_analysis/thr_0.25_report.json").decode("utf-8")
-        )
+        payload_any = json.loads(zf.read("run_0001/graph_analysis/thr_0.25_report.json").decode("utf-8"))
+        payload = cast(dict[str, Any], payload_any)
         assert set(payload.keys()) == {"nodes", "edges", "jaccard"}
         assert payload["nodes"] == 10
         assert isinstance(payload["edges"], int)
