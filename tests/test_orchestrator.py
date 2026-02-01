@@ -3,11 +3,33 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from orchestrator.run import Params, _parse_thresholds, process_run, run
+from orchestrator.run import Params, _parse_thresholds, build_parser, main, process_run, run
 
 
 def test_parse_thresholds() -> None:
     assert _parse_thresholds("0.25, 0.5") == [0.25, 0.5]
+
+
+def test_build_parser_parses_zip_flag(tmp_path: Path) -> None:
+    p = build_parser()
+    args = p.parse_args(
+        [
+            "--runs",
+            "2",
+            "--thresholds",
+            "0.25",
+            "--out",
+            str(tmp_path / "_out"),
+            "--seed-base",
+            "100",
+            "--workers",
+            "1",
+            "--zip",
+        ]
+    )
+    assert args.runs == 2
+    assert args.thresholds == "0.25"
+    assert args.zip_out is True
 
 
 def test_process_run_and_run(tmp_path: Path) -> None:
@@ -31,7 +53,15 @@ def test_process_run_and_run(tmp_path: Path) -> None:
 
     manifest = json.loads((params.out / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["runs"] == 2
-    assert manifest["name"] == "RiftTrace"
+    assert manifest["name"] == "EchoNull"
 
     assert z is not None
     assert z.exists()
+
+
+def test_main_smoke(tmp_path: Path) -> None:
+    out = tmp_path / "cli_out"
+    rc = main(["--runs", "1", "--thresholds", "0.25", "--out", str(out), "--workers", "1"])
+    assert rc == 0
+    assert (out / "overview.json").exists()
+    assert (out / "manifest.json").exists()
