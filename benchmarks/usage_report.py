@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def _clean_text(s: str) -> str:
-    # Handles values like: ""'hosted"" or "".github/workflows/ci.yml""
+    # Handles values like: "\"'hosted\"" or "\".github/workflows/ci.yml\""
     s = s.strip()
     s = re.sub(r'^"\'', "", s)
     s = re.sub(r'"$', "", s)
@@ -50,7 +50,11 @@ def summarize_usage(fixtures_dir: Path) -> dict[str, Any]:
         by_workflow["avg_run_s"] = by_workflow["Avg run time"] / 1000.0
 
     test_row = by_job.loc[by_job["Job"] == "test"].iloc[0].to_dict()
-    ci_row = by_workflow.loc[by_workflow["Workflow"] == ".github/workflows/ci.yml"].iloc[0].to_dict()
+    ci_row = (
+        by_workflow.loc[by_workflow["Workflow"] == ".github/workflows/ci.yml"]
+        .iloc[0]
+        .to_dict()
+    )
     overall_row = overall.iloc[0].to_dict()
 
     return {
