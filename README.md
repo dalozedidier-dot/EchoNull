@@ -1,35 +1,31 @@
-# EchoNull
+EchoNull — Correctif structurel (duplication de module) — v0.1.2
 
-Monorepo Python 3.12+ structuré en modules isolés, nommés par fonction.
-Objectif : exécuter des sweeps multi-runs rapidement avec une base CI stricte.
+Objet
+-----
+Corriger l'échec mypy "Duplicate module named 'patch_nulltrace_mypy'" en supprimant
+le doublon en racine, en conservant scripts/patch_nulltrace_mypy.py.
 
-## Arborescence
-- `orchestrator/` : orchestrateur, génération datasets, exécution multi-runs, packaging de sorties
-- `graph_analysis/` : graphs, edges, Jaccard, thresholds
-- `delta_stats/` : deltas absolus et stats robustes (p50–p99, MAD)
-- `mark_counts/` : comptage de marks
-- `common/` : utilitaires minimaux (hashing, timing, protocol)
-- `benchmarks/` : scripts de perf
-- `.github/workflows/` : CI isolée par module + un sweep global
+Invariants
+----------
+- Aucun renommage des 4 blocs (BareFlux / RiftLens / NullTrace / VoidMark).
+- Pas d'exclusion de fichiers pour contourner.
+- Correction unique, propre, reproductible.
 
-## Démarrage rapide (local)
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
+Contenu du zip
+--------------
+- fix_duplicate_module.sh : applique le correctif minimal (git rm du doublon racine) + vérifs.
+- verify_ci_gates.sh      : exécute la séquence de diagnostics (ruff/black/mypy/pytest).
 
-ruff check .
-black --check .
-mypy .
-pytest -q --cov --cov-report=term-missing --cov-fail-under=100
-```
-
-## Lancer un sweep minimal
-```bash
-PYTHONPATH=src python -m orchestrator.run --runs 5 --out _out --zip
-```
+Mode d'emploi
+-------------
+1) Dézipper à la racine du repo EchoNull (même niveau que pyproject.toml).
+2) Exécuter:
+     bash fix_duplicate_module.sh
+3) Optionnel (si tu veux revalider sans modifier):
+     bash verify_ci_gates.sh
 
 Notes
-- Squelette fonctionnel, orienté perf, prêt à être durci.
-- Les analyzers respectent une interface stricte via `AnalyzerProtocol`.
+-----
+- Le script échoue explicitement si le repo n'est pas un dépôt git, ou si les fichiers attendus
+  ne sont pas présents.
+- Le script ne commit pas automatiquement (pour laisser la gouvernance au repo).
