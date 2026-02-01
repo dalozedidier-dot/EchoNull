@@ -6,6 +6,8 @@ on:
 jobs:
   sweep:
     runs-on: ubuntu-latest
+            env:
+              PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,7 +24,7 @@ jobs:
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
-          name: rifttrace_sweep
+          name: echonull_sweep
           path: |
             _ci_out
             _ci_out.zip
