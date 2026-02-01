@@ -1,6 +1,14 @@
-# Enforce LF to avoid formatter diffs on Linux CI
-* text=auto eol=lf
-*.py   text eol=lf
-*.yml  text eol=lf
-*.yaml text eol=lf
-*.toml text eol=lf
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+_out/
+_ci_out/
+dist/
+build/
+*.egg-info/
