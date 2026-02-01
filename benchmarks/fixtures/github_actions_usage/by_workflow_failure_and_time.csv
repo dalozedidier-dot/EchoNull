@@ -1,0 +1,4 @@
+"""'Workflow""","""'Has job failures""","""'Avg run time""","""'Workflow runs""","""'Jobs"""
+"""'.github/workflows/ci.yml""",47.06,33296,34,1
+"""'.github/workflows/extended_tests.yml""",0.00,26644,6,1
+"""'.github/workflows/sweep.yml""",0.00,25410,14,1

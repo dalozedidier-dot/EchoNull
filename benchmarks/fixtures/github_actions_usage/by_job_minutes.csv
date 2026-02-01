@@ -1,0 +1,4 @@
+"""'Job""","""'Workflow""","""'Total minutes""","""'Job runs""","""'Runner type""","""'Runner labels"""
+"""'test""","""'.github/workflows/ci.yml""",35,35,"""'hosted""","""'ubuntu-latest"""
+"""'sweep""","""'.github/workflows/sweep.yml""",15,15,"""'hosted""","""'ubuntu-latest"""
+"""'extended""","""'.github/workflows/extended_tests.yml""",7,7,"""'hosted""","""'ubuntu-latest"""

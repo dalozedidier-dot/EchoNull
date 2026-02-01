@@ -1,0 +1,4 @@
+"""'Workflow""","""'Total minutes""","""'Workflow runs""","""'Jobs""","""'Runner type""","""'Runtime OS"""
+"""'.github/workflows/ci.yml""",34,34,1,"""'hosted""","""'linux"""
+"""'.github/workflows/sweep.yml""",14,14,1,"""'hosted""","""'linux"""
+"""'.github/workflows/extended_tests.yml""",6,6,1,"""'hosted""","""'linux"""
