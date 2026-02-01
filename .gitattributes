@@ -1,4 +1,4 @@
-# Force LF line endings in the repo (prevents Black "would reformat" due to CRLF)
+# Force LF line endings (prevents Black "would reformat" due to CRLF)
 *.py   text eol=lf
 *.yml  text eol=lf
 *.yaml text eol=lf
