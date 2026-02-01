@@ -1,33 +1,34 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-_PREFIX_RE = re.compile(r'^"\\\'')
-_SUFFIX_RE = re.compile(r'"$')
 
+def _clean_text(value: str) -> str:
+    s = value.strip()
 
-def _clean_text(s: str) -> str:
-    s = s.strip()
-    s = _PREFIX_RE.sub("", s)
-    s = _SUFFIX_RE.sub("", s)
-    s = s.replace("\\\\", "")
+    # Certains exports CSV GitHub contiennent des guillemets et des backslashes parasites.
+    if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
+        s = s[1:-1]
+
+    s = s.replace("\\", "")
+
+    if s.startswith("'"):
+        s = s[1:]
+
     return s.strip()
-
-
-def _clean_columns(cols: list[str]) -> list[str]:
-    return [_clean_text(c) for c in cols]
 
 
 def load_usage_csv(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path)
-    df.columns = _clean_columns(list(df.columns))
+    df.columns = [_clean_text(str(c)) for c in df.columns]
+
     for col in df.columns:
         if df[col].dtype == object:
             df[col] = df[col].astype(str).map(_clean_text)
+
     return df
 
 
