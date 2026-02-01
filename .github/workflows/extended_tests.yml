@@ -4,23 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       runs:
-        description: "Number of runs for soak sweep"
+        description: "Number of runs for the integration sweep test"
         required: false
-        default: "50"
+        default: "200"
       thresholds:
         description: "Comma-separated thresholds"
         required: false
         default: "0.25,0.5,0.7,0.8"
-      workers:
-        description: "Worker processes"
-        required: false
-        default: "2"
-  schedule:
-    - cron: "23 2 * * *"
 
 jobs:
   extended:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
 
@@ -32,31 +28,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-          pip install -r common/requirements.txt
-          pip install -r graph_analysis/requirements.txt
-          pip install -r delta_stats/requirements.txt
-          pip install -r mark_counts/requirements.txt
-          pip install -r orchestrator/requirements.txt
+          pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
 
       - name: Run extended tests
-        env:
-          PYTHONPATH: .
         run: |
           pytest -q extended_tests
 
-      - name: Soak sweep
-        env:
-          PYTHONPATH: .
+      - name: Run integration sweep
         run: |
-          RUNS="${{ inputs.runs || '50' }}"
-          THR="${{ inputs.thresholds || '0.25,0.5,0.7,0.8' }}"
-          WORKERS="${{ inputs.workers || '2' }}"
-          python -m orchestrator.run --runs "$RUNS" --thresholds "$THR" --workers "$WORKERS" --out _soak_out --zip
+          mkdir -p _ci_out_ext
+          python -m orchestrator.run --runs "${{ inputs.runs || '200' }}" --thresholds "${{ inputs.thresholds || '0.25,0.5,0.7,0.8' }}" --out _ci_out_ext --zip
 
-      - name: Upload soak artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: echonull_soak_out
-          path: |
-            _soak_out
-            _soak_out.zip
+          name: echonull-extended
+          path: _ci_out_ext
