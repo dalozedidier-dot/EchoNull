@@ -4,43 +4,36 @@ import re
 from pathlib import Path
 
 
-def _update_typing_imports(text: str) -> str:
-    # Ensure `cast` is available if we end up using it.
-    if "cast(" in text:
-        return text
+def _remove_collection_from_typing_imports(text: str) -> str:
+    # from typing import A, B, Collection, C  -> remove Collection
+    pat1 = (
+        r"(from\s+typing\s+import\s+[^\n]*?)"
+        r"\bCollection\b\s*,\s*"
+    )
+    text = re.sub(pat1, r"\1", text)
 
-    # If we replaced annotations, we might not need cast.
-    return text
+    pat2 = (
+        r"(from\s+typing\s+import\s+[^\n]*?)"
+        r",\s*\bCollection\b"
+    )
+    text = re.sub(pat2, r"\1", text)
+
+    pat3 = r"(from\s+typing\s+import\s+)\bCollection\b(\s*\n)"
+    return re.sub(pat3, r"\1\2", text)
 
 
 def patch_nulltrace_file(path: Path) -> None:
     original = path.read_text(encoding="utf-8", errors="strict")
     text = original
 
-    # 1) Prefer the clean fix: replace `Collection[Collection[str]]` with `list[list[str]]`
-    # This makes `.append(...)` valid on the declared type.
+    # Replace a read-only Collection annotation with a mutable list for `.append(...)`.
     text = text.replace("Collection[Collection[str]]", "list[list[str]]")
 
-    # 2) If we removed all uses of `Collection[` from the file, try to remove Collection from typing imports
+    # If no `Collection[` remains, remove Collection from typing imports.
     if "Collection[" not in text:
-        # from typing import A, B, Collection, C
-        text = re.sub(
-            r"(from\s+typing\s+import\s+[^\n]*?)\bCollection\b\s*,\s*",
-            r"\1",
-            text,
-        )
-        text = re.sub(
-            r"(from\s+typing\s+import\s+[^\n]*?),\s*\bCollection\b",
-            r"\1",
-            text,
-        )
-        text = re.sub(
-            r"(from\s+typing\s+import\s+)\bCollection\b(\s*\n)",
-            r"\1\2",
-            text,
-        )
+        text = _remove_collection_from_typing_imports(text)
 
-    # 3) Normalize line endings to LF (can avoid formatter churn)
+    # Normalize line endings to LF
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
     if text != original:
