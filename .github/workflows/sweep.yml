@@ -1,44 +1,30 @@
 name: sweep
-
 on:
   workflow_dispatch:
-    inputs:
-      runs:
-        description: "Number of runs"
-        required: false
-        default: "50"
-      thresholds:
-        description: "Comma-separated thresholds"
-        required: false
-        default: "0.25,0.5,0.7,0.8"
   schedule:
     - cron: "0 3 * * *"
-
 jobs:
   sweep:
     runs-on: ubuntu-latest
-    env:
-      PYTHONPATH: .
+            env:
+              PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
-
-      - name: Run sweep
+      - name: Smoke sweep
         run: |
-          mkdir -p _ci_out
-          python -m orchestrator.run --runs "${{ inputs.runs || '50' }}" --thresholds "${{ inputs.thresholds || '0.25,0.5,0.7,0.8' }}" --out _ci_out --zip
-
-      - name: Upload artifacts
+          python -m orchestrator.run --runs 5 --out _ci_out --workers 2 --zip
+      - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
-          name: echonull-sweep
-          path: _ci_out
+          name: echonull_sweep
+          path: |
+            _ci_out
+            _ci_out.zip
