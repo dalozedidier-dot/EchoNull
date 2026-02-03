@@ -1,15 +1,12 @@
-Mypy hotfix (CI)
+Notes de patch (v0.1.1)
 
-This patch addresses the two mypy errors reported in CI:
+Ce patch fait deux choses.
 
-1) src/null_trace.py: "main" does not return a value
-   Fix: ensure main() returns int and SystemExit receives an int.
+1) Stabilise le benchmark "usage_report" avec Pandas 3.0
+   Le chargement des CSV de consommation GitHub Actions nettoie maintenant toutes les colonnes de type texte, y compris les nouveaux dtypes string de Pandas. Cela évite un cas où le job "test" n'était plus reconnu, et où le résumé plantait avec un IndexError.
 
-2) src/nulltrace/null_trace.py: Collection[Collection[str]] has no attribute append
-   Fix: replace the annotation with list[list[str]] (append is valid).
-
-Apply:
-- Extract this zip at repo root.
-- Commit src/null_trace.py.
-- Run once (then commit the result):
-    python scripts/patch_nulltrace_mypy.py
+2) Nettoie les workflows GitHub Actions
+   Les workflows fragmentaires et mal indentés ont été retirés. Il reste trois workflows valides.
+   - ci.yml : lint, mypy, tests
+   - sweep.yml : sweep planifié léger
+   - extended_tests.yml : exécution planifiée plus lourde, incluant un soak sweep

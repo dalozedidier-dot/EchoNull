@@ -13,10 +13,6 @@ echo "== ls -la"
 ls -la
 echo
 
-echo '== find . -maxdepth 2 -name "patch_nulltrace_mypy.py" -print'
-find . -maxdepth 2 -name "patch_nulltrace_mypy.py" -print
-echo
-
 echo "== ruff check ."
 ruff check .
 echo

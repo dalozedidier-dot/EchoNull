@@ -6,8 +6,8 @@ on:
 jobs:
   sweep:
     runs-on: ubuntu-latest
-            env:
-              PYTHONPATH: src
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from pandas.api.types import is_string_dtype
 
 
 def _clean_text(value: str) -> str:
@@ -25,8 +26,10 @@ def load_usage_csv(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path)
     df.columns = [_clean_text(str(c)) for c in df.columns]
 
+    # Pandas 3.0 may default to dedicated string dtypes instead of plain object.
+    # We want to normalize *all* string-like columns (headers already cleaned above).
     for col in df.columns:
-        if df[col].dtype == object:
+        if is_string_dtype(df[col]):
             df[col] = df[col].astype(str).map(_clean_text)
 
     return df
