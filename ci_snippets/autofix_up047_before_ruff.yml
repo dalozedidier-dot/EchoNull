@@ -1,0 +1,8 @@
+# Snippet GitHub Actions (optionnel)
+# Place ceci AVANT `ruff check .` si tu veux forcer un run de correction dans CI.
+# NOTE: ça modifie le working tree du runner (pas de commit). C'est un garde-fou.
+
+- name: Autofix UP047 (perf_timer)
+  run: |
+    python tools/fix_up047_perf_timer.py --file common/utils.py
+    git diff --exit-code || (echo "WORKTREE MODIFIED: commit the changes" && git diff && exit 1)
