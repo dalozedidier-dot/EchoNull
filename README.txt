@@ -1,25 +1,25 @@
-EchoNull — CI fix bundle (py3.12-only + coverage target) — 2026-02-03
+EchoNull CI patch bundle: py3.12-only + real coverage target
 
-Observed in logs_56249577047.zip:
-- Jobs still run on py3.11 -> SyntaxError at `def perf_timer[...]` (PEP 695).
-- py3.12 tests pass but coverage is 0% due to `--cov=src` + `PYTHONPATH=src`.
+Why:
+- common/utils.py uses PEP 695 type parameter syntax, which requires Python 3.12+.
+- CI was still running 3.10/3.11 (SyntaxError during collection).
+- Under 3.12, tests passed but coverage was 0% because CI used --cov=src and PYTHONPATH=src while the repo is not in a src/ layout.
 
-This bundle patches `.github/workflows/ci.yml` IN PLACE:
-1) Removes python 3.10 and 3.11 entries from python-version matrices.
-2) Replaces `--cov=src` / `--cov src` with `--cov=.` / `--cov .`
-3) Rewrites `PYTHONPATH: src` -> `PYTHONPATH: .` (if present)
+What this patch does (scripts/fix_ci_py312_cov.sh):
+- Targets .github/workflows/ci.yml (fallback: ci.yaml)
+- Creates a backup next to it: ci.yml.bak (only once)
+- Removes Python 3.10 and 3.11 from workflow matrices (inline list and block list)
+- Replaces:
+    --cov=src  -> --cov=.
+    --cov src  -> --cov .
+    PYTHONPATH: src -> PYTHONPATH: .
 
 How to apply:
-1) Unzip at repo root (EchoNull)
-2) Run:
-     bash scripts/fix_ci_py312_cov.sh
-3) Verify:
-     git diff
-4) Commit + push:
-     git commit -am "ci: py312-only + fix coverage target"
-     git push
+  bash scripts/fix_ci_py312_cov.sh
+  git diff
+  git commit -am "ci: py312-only + fix coverage target"
+  git push
 
 Notes:
-- Script creates a backup: `.github/workflows/ci.yml.bak` (do not commit it).
-- This bundle does not change `fail-under=100`. If coverage after fix is <100,
-  CI will still fail but with a real (non-zero) coverage number.
+- If your workflow file isn't named ci.yml/ci.yaml, edit the script and set WF to the correct file.
+- If fail-under=100 is enabled, CI may still fail after this patch with a REAL coverage value below the threshold.

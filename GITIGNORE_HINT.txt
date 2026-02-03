@@ -1,0 +1,6 @@
+Add one of these to your .gitignore (recommended):
+
+# Ignore workflow backups created by the CI patch script
+.github/workflows/*.bak
+# or, more specific:
+.github/workflows/ci.yml.bak
