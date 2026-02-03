@@ -6,7 +6,7 @@ import time
 from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Protocol, TypeVar, cast
+from typing import Any, Protocol, cast
 
 logger = logging.getLogger("EchoNull")
 if not logger.handlers:
@@ -24,10 +24,7 @@ def compute_sha256(path: Path) -> str:
     return sha256.hexdigest()
 
 
-F = TypeVar("F", bound=Callable[..., Any])
-
-
-def perf_timer(func: F) -> F:
+def perf_timer[F: Callable[..., Any]](func: F) -> F:
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         start = time.perf_counter()
