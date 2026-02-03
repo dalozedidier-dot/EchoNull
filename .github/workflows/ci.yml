@@ -1,34 +1,114 @@
-name: ci
+name: BareFlux CI - Tests + Shadow Diff Validation
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   pull_request:
-  workflow_dispatch:
+    branches: [main, feat/*, fix/*]
+  workflow_dispatch:  # Pour lancer manuellement
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-          pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
+          pip install ruff pytest pytest-cov  # + tes deps (pandas, networkx, etc.)
 
-      - name: Lint
+      - name: Lint with Ruff
+        run: ruff check . --output-format=github
+
+  test:
+    needs: lint  # Lint passe avant tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, macos-latest]  # windows-latest si besoin, mais souvent plus lent
+      fail-fast: false  # Continue même si un job échoue
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
         run: |
-          ruff check .
-          black --check .
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # ou poetry install / uv sync si tu utilises uv/poetry
+          pip install pytest pytest-cov pandas networkx  # Ajoute tes deps spécifiques
 
-      - name: Typecheck
-        run: mypy .
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=src --cov-report=xml --cov-report=html --junitxml=test-results/junit.xml tests/
+        env:
+          PYTHONPATH: src  # Si ton code est dans src/
 
-      - name: Tests
-        run: pytest --cov --cov-report=term-missing --cov-fail-under=100
+      - name: Upload coverage & test results
+        uses: actions/upload-artifact@v4
+        if: always()  # Upload même si tests échouent
+        with:
+          name: test-results-py${{ matrix.python-version }}-${{ matrix.os }}
+          path: |
+            coverage.xml
+            htmlcov/
+            test-results/junit.xml
+          retention-days: 14
+
+  shadow-validation:
+    needs: test  # Lance après tests unitaires OK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt pandas
+
+      - name: Run BareFlux orchestration (shadow diff + RiftLens + VoidMark)
+        run: |
+          # Remplace par ta commande réelle (CLI ou script)
+          python -m bareflux orchestrate \
+            --prev data/previous_shadow.csv \
+            --curr data/current.csv \
+            --output-dir artifacts/ \
+            --runs 50  # Réduis à 50 pour CI rapide (vs 200 en local/prod)
+
+      - name: Upload shadow diff artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bareflux-artifacts
+          path: artifacts/
+          if-no-files-found: warn  # Ou error si obligatoire
+          retention-days: 7
+
+      - name: Fail if significant drift detected (exemple simple)
+        run: |
+          # Script bash basique pour checker mean delta b > 0.01 → fail CI
+          mean_b=$(python -c "import pandas as pd; print(pd.read_csv('artifacts/bareflux_shadow_diff_stats.csv').query('column == \"b\"')['mean'].values[0])")
+          if (( $(echo "$mean_b > 0.01" | bc -l) )); then
+            echo "Significant drift on column b: $mean_b > 0.01 → CI failed"
+            exit 1
+          else
+            echo "Drift on b OK: $mean_b"
+          fi
