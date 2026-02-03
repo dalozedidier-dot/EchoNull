@@ -1,27 +1,18 @@
-EchoNull — purge workflow BareFlux (suppression)
-Date: 2026-02-03
+EchoNull — patch CI (Python 3.12+ + coverage) — 2026-02-03
 
-Objet:
-  - Retirer de EchoNull un workflow "bareflux-*" (ou tout workflow contenant 'bareflux') qui n'a pas de rôle
-    dans le module EchoNull.
+Constats (logs_56244230274.zip):
+- job test Python 3.10 : SyntaxError sur `def perf_timer[...]` (PEP 695 non supporté)
+- job test Python 3.12 : tests OK mais coverage = 0% car `pytest --cov=src` (pas de dossier src)
 
-Deux méthodes:
+Correctif:
+- retirer les versions < 3.12 dans la matrix python-version
+- remplacer `--cov=src` par `--cov=.`
 
-A) Script (robuste, ne dépend pas du nom exact)
-  1) Dézip à la racine du repo EchoNull
-  2) Dry-run (liste ce qui serait supprimé):
-       python tools/purge_bareflux_from_echonull.py --dry-run
-  3) Suppression:
-       python tools/purge_bareflux_from_echonull.py
-  4) Vérification:
-       git status
-       git diff
-  5) Commit + push
+Procédure:
+1) Dézip à la racine du repo EchoNull.
+2) Dry-run:
+   python tools/patch_ci_py312_cov.py --dry-run
+3) Apply:
+   python tools/patch_ci_py312_cov.py --apply
+4) Commit + push.
 
-B) Patch git (si le fichier s'appelle exactement .github/workflows/bareflux-improvements.yml)
-  1) git apply patches/remove_bareflux_workflow.patch
-  2) git status / commit / push
-
-Notes:
-  - Le script ne touche pas aux workflows EchoNull standards, sauf s'ils contiennent le token 'bareflux'.
-  - Code retour 2 = fichiers supprimés (utile si tu l'appelles dans CI).
