@@ -1,18 +1,19 @@
 # ruff: noqa
 #!/usr/bin/env python3
 """
-Autofix Ruff UP047 for a generic function `perf_timer` using PEP 695 (Python 3.12+).
+Autofix Ruff UP047 for generic function `perf_timer` using PEP 695 (Python 3.12+).
 
-Goal:
-- Transform:
-    P = ParamSpec("P")
-    R = TypeVar("R")
-    def perf_timer(func: Callable[P, R]) -> Callable[P, R]:
-  into:
-    def perf_timer[**P, R](func: Callable[P, R]) -> Callable[P, R]:
+Transforms:
+  P = ParamSpec("P")
+  R = TypeVar("R")
+  def perf_timer(func: Callable[P, R]) -> Callable[P, R]:
 
-- Remove the standalone ParamSpec/TypeVar definitions if they are near perf_timer.
-- Remove ParamSpec/TypeVar from `from typing import ...` if unused after the change.
+Into:
+  def perf_timer[**P, R](func: Callable[P, R]) -> Callable[P, R]:
+
+Also:
+- removes the standalone ParamSpec/TypeVar assignment lines if found near perf_timer.
+- removes ParamSpec/TypeVar from `from typing import ...` if unused after the change.
 
 Usage:
   python tools/fix_up047_perf_timer.py --file common/utils.py
@@ -46,19 +47,10 @@ def _find_def_pos(text: str) -> int:
 
 
 def _line_index_at_pos(text: str, pos: int) -> int:
-    # returns 0-based line index
     return text[:pos].count("\n")
 
 
 def _remove_nearby_defs(text: str, def_pos: int, window_lines: int = 30) -> tuple[str, str, str]:
-    """
-    Search in a window of lines above the perf_timer definition for:
-      <P> = ParamSpec("<P>")
-      <R> = TypeVar("<R>")
-    Remove them if found.
-
-    Returns: (new_text, p_name, r_name)
-    """
     lines = text.splitlines(True)
     def_line = _line_index_at_pos(text, def_pos)
     start = max(0, def_line - window_lines)
@@ -72,12 +64,9 @@ def _remove_nearby_defs(text: str, def_pos: int, window_lines: int = 30) -> tupl
     for m in TYPEVAR_LINE_RE.finditer(block):
         r_name = m.group("name")
 
-    if not p_name:
-        p_name = "P"
-    if not r_name:
-        r_name = "R"
+    p_name = p_name or "P"
+    r_name = r_name or "R"
 
-    # Remove first occurrence of these lines before def_line
     removed_p = False
     removed_r = False
     out = []
@@ -101,12 +90,8 @@ def _pep695ize_def(text: str, p_name: str, r_name: str) -> str:
 
 
 def _cleanup_typing_imports(text: str) -> str:
-    """
-    If ParamSpec/TypeVar identifiers are not present anymore, drop them from `from typing import ...`.
-    """
     uses_paramspec = "ParamSpec" in text
     uses_typevar = "TypeVar" in text
-
     if uses_paramspec or uses_typevar:
         return text
 
@@ -117,7 +102,6 @@ def _cleanup_typing_imports(text: str) -> str:
         indent = m.group("indent")
         rest = m.group("rest").strip()
 
-        # Parenthesized form
         if rest.startswith("(") and rest.endswith(")"):
             inner = rest[1:-1]
             parts = [p.strip() for p in inner.split(",") if p.strip()]
@@ -126,7 +110,6 @@ def _cleanup_typing_imports(text: str) -> str:
                 return ""
             return indent + "from typing import (" + ", ".join(parts) + ")\n"
 
-        # Comma-separated
         parts = [p.strip() for p in rest.split(",") if p.strip()]
         parts = [p for p in parts if p not in ("ParamSpec", "TypeVar")]
         if not parts:

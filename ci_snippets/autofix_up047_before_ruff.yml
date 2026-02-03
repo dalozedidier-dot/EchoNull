@@ -1,7 +1,7 @@
-# Snippet à insérer dans .github/workflows/ci.yml (job lint) AVANT `ruff check .`
-# Objectif: rendre l'échec explicite si le correctif n'est pas commité.
+# Snippet GitHub Actions (optionnel)
+# À placer AVANT `ruff check .` pour détecter si le correctif n'est pas commité.
 
 - name: Autofix UP047 (perf_timer) + fail if dirty
   run: |
     python tools/fix_up047_perf_timer.py --file common/utils.py
-    git diff --exit-code || (echo "WORKTREE MODIFIED: commit required" && git diff && exit 1)
+    git diff --exit-code || (echo "WORKTREE MODIFIED: commit the changes" && git diff && exit 1)
