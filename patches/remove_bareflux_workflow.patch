@@ -1,0 +1,8 @@
+# Git patch (apply with: git apply patches/remove_bareflux_workflow.patch)
+diff --git a/.github/workflows/bareflux-improvements.yml b/.github/workflows/bareflux-improvements.yml
+deleted file mode 100644
+index 0000000..0000000
+--- a/.github/workflows/bareflux-improvements.yml
++++ /dev/null
+@@ -1,999 +0,0 @@
+-(file removed)

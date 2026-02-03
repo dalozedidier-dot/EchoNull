@@ -1,27 +1,27 @@
-EchoNull — Correctif Ruff UP047 (perf_timer)
+EchoNull — purge workflow BareFlux (suppression)
 Date: 2026-02-03
 
-Constat:
-  - ruff: common/utils.py:..: UP047 Generic function `perf_timer` should use type parameters
+Objet:
+  - Retirer de EchoNull un workflow "bareflux-*" (ou tout workflow contenant 'bareflux') qui n'a pas de rôle
+    dans le module EchoNull.
 
-Cause:
-  - `perf_timer` est défini avec ParamSpec/TypeVar alors que Ruff attend des paramètres de type PEP 695 (Python 3.12+).
+Deux méthodes:
 
-Correctif fourni:
-  - tools/fix_up047_perf_timer.py :
-      - convertit `perf_timer` vers: def perf_timer[**P, R](...)
-      - retire les lignes `P = ParamSpec("P")` / `R = TypeVar("R")` si elles sont proches de la fonction
-      - nettoie les imports `typing` si ParamSpec/TypeVar deviennent inutiles
-
-Procédure déterministe:
-  1) Dézip à la racine du repo EchoNull.
-  2) Exécute:
-       python tools/fix_up047_perf_timer.py --file common/utils.py
-  3) Vérifie:
+A) Script (robuste, ne dépend pas du nom exact)
+  1) Dézip à la racine du repo EchoNull
+  2) Dry-run (liste ce qui serait supprimé):
+       python tools/purge_bareflux_from_echonull.py --dry-run
+  3) Suppression:
+       python tools/purge_bareflux_from_echonull.py
+  4) Vérification:
+       git status
        git diff
-  4) Commit + push (sur la branche exécutée par la CI).
-  5) Relance le workflow lint.
+  5) Commit + push
 
-Option CI (garde-fou, sans auto-commit):
-  - ci_snippets/enforce_up047_fix_before_ruff.yml
-    (échoue si le fix n'est pas commité, en affichant le diff)
+B) Patch git (si le fichier s'appelle exactement .github/workflows/bareflux-improvements.yml)
+  1) git apply patches/remove_bareflux_workflow.patch
+  2) git status / commit / push
+
+Notes:
+  - Le script ne touche pas aux workflows EchoNull standards, sauf s'ils contiennent le token 'bareflux'.
+  - Code retour 2 = fichiers supprimés (utile si tu l'appelles dans CI).
