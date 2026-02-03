@@ -1,23 +1,29 @@
-EchoNull — Workflow cleanup bundle (suppression BareFlux + correction common.yml)
+EchoNull — Sanitize bundle (remove BareFlux workflow + fix UP047 + cleanup tools)
 Date: 2026-02-03
 
-Objet:
-  - Supprimer le workflow "BareFlux CI - Tests + Shadow Diff ..." présent dans EchoNull (hors périmètre module-2).
-  - Corriger l'incohérence "orchestrator" pointant sur `.github/workflows/common.yml` :
-      -> renommer common.yml selon son champ `name:` (ex: orchestrator.yml)
-      -> réécrire les références `uses: .../common.yml` vers le nouveau nom.
+Contexte observé (logs_56233836943.zip):
+  - Ruff échoue sur:
+      common/utils.py: UP047 (perf_timer)
+    ET sur des scripts de tools ajoutés par erreur:
+      tools/cleanup_workflows_echonull.py (E501/I001/F401)
+      tools/purge_bareflux_from_echonull.py (E501/F401)
 
-Usage:
+But:
+  - Revenir à une séparation stricte "module-2" (EchoNull) vs "module-4" (BareFlux).
+  - Nettoyer les artefacts hors-périmètre.
+  - Débloquer la CI Ruff.
+
+Procédure:
   1) Dézip à la racine du repo EchoNull.
-  2) Dry-run:
-       python tools/cleanup_workflows_echonull.py --dry-run
+  2) Dry-run (voir exactement ce qui sera fait):
+       python tools/sanitize_echonull.py --dry-run
   3) Apply:
-       python tools/cleanup_workflows_echonull.py --apply
-  4) Commit + push.
-
-Rapport généré:
-  - _workflow_cleanup_report.json
+       python tools/sanitize_echonull.py --apply
+  4) Vérifier:
+       git status
+       git diff
+  5) Commit + push sur la branche exécutée par CI.
 
 Note:
-  - Le script supprime tout workflow dont le fichier, le `name:` ou le contenu match "bareflux" (case-insensitive).
-  - Si `.github/workflows/common.yml` n'existe pas ou n'a pas de `name:`, il ne renomme pas.
+  - Ce script ne peut pas "supprimer des fichiers" via un zip; il les supprime localement quand tu l'exécutes.
+  - La CI ne change que quand tu commit/push.
