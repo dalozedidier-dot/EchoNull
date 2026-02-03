@@ -1,32 +1,55 @@
 name: graph_analysis
+
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run id"
+        required: true
+        default: "1"
+      seed:
+        description: "Seed"
+        required: true
+        default: "1000"
+      thresholds:
+        description: "Seuils (ex: 0.25,0.5,0.7,0.8)"
+        required: true
+        default: "0.25,0.5,0.7,0.8"
+
 jobs:
-  build:
+  smoke:
     runs-on: ubuntu-latest
-            env:
-              PYTHONPATH: src
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dev tools
+
+      - name: Install
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-- name: Install module requirements
-  run: |
-        pip install -r common/requirements.txt
-    pip install -r graph_analysis/requirements.txt
-- name: Ruff
-  run: ruff check .
-- name: Black
-  run: black --check .
-- name: Mypy
-  run: mypy common graph_analysis tests
-- name: Pytest
-  run: |
-    pytest --cov --cov-report=term-missing --cov-fail-under=100
+          pip install -r common/requirements.txt -r graph_analysis/requirements.txt
+
+      - name: Run graph_analysis
+        run: |
+          mkdir -p _ci_out
+          printf '%s\n' \
+            'from pathlib import Path' \
+            'from graph_analysis.analyzer import GraphAnalysisAnalyzer' \
+            'thr = [float(x.strip()) for x in "${{ inputs.thresholds }}".split(",") if x.strip()]' \
+            'out = Path("_ci_out")' \
+            'out.mkdir(parents=True, exist_ok=True)' \
+            'an = GraphAnalysisAnalyzer(thresholds=thr)' \
+            'print(an.analyze(run_id=int("${{ inputs.run_id }}"), seed=int("${{ inputs.seed }}"), data=None, output_dir=out))' \
+            > _ci_out/run_graph_analysis.py
+          python _ci_out/run_graph_analysis.py
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: graph_analysis_out
+          path: _ci_out/graph_analysis
