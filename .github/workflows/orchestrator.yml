@@ -1,35 +1,60 @@
 name: orchestrator
+
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: "Nombre de runs"
+        required: true
+        default: "10"
+      thresholds:
+        description: "Seuils (ex: 0.25,0.5,0.7,0.8)"
+        required: true
+        default: "0.25,0.5,0.7,0.8"
+      seed_base:
+        description: "Seed base"
+        required: true
+        default: "1000"
+      workers:
+        description: "Workers"
+        required: true
+        default: "2"
+      zip_out:
+        description: "Produire aussi _ci_out.zip (true/false)"
+        required: true
+        default: "true"
+
 jobs:
-  build:
+  run:
     runs-on: ubuntu-latest
-            env:
-              PYTHONPATH: src
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dev tools
+
+      - name: Install
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-- name: Install module requirements
-  run: |
-        pip install -r common/requirements.txt
-    pip install -r graph_analysis/requirements.txt
-    pip install -r delta_stats/requirements.txt
-    pip install -r mark_counts/requirements.txt
-    pip install -r orchestrator/requirements.txt
-- name: Ruff
-  run: ruff check .
-- name: Black
-  run: black --check .
-- name: Mypy
-  run: mypy common graph_analysis delta_stats mark_counts orchestrator tests
-- name: Pytest
-  run: |
-    pytest --cov --cov-report=term-missing --cov-fail-under=100
+          pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
+
+      - name: Run orchestrator
+        run: |
+          mkdir -p _ci_out
+          if [ "${{ inputs.zip_out }}" = "true" ]; then
+            python -m orchestrator.run --runs "${{ inputs.runs }}" --thresholds "${{ inputs.thresholds }}" --seed-base "${{ inputs.seed_base }}" --workers "${{ inputs.workers }}" --out _ci_out --zip
+          else
+            python -m orchestrator.run --runs "${{ inputs.runs }}" --thresholds "${{ inputs.thresholds }}" --seed-base "${{ inputs.seed_base }}" --workers "${{ inputs.workers }}" --out _ci_out
+          fi
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: orchestrator_out
+          path: |
+            _ci_out
+            _ci_out.zip
