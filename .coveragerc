@@ -1,11 +1,9 @@
 [run]
-branch = True
-source = .
 omit =
     benchmarks/*
     tests/*
     tools/*
-    */__init__.py
+    orchestrator/__main__.py
 
 [report]
 exclude_lines =
