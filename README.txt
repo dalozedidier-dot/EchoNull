@@ -1,29 +1,26 @@
-EchoNull — Sanitize bundle — logs_56234659392
-Date: 2026-02-03
+EchoNull — Correctif CI (py3.12-only + coverage) — 2026-02-03
 
-Ce que montrent les logs:
-  - Ruff échoue sur:
-      common/utils.py: UP047 (perf_timer)
-      tools/cleanup_workflows_echonull.py: E501/I001/F401
-      tools/purge_bareflux_from_echonull.py: F401/E501
+Constats (logs_56244230274.zip):
+- py3.10/py3.11: échec en collection (SyntaxError) car `perf_timer[...]` est PEP 695 (Python 3.12+).
+- py3.12: 15 tests passent, mais couverture = 0% (No data was collected) car CI utilise `--cov=src`
+  alors que le repo n'est pas en layout `src/`.
 
-But (sans compensation):
-  - Supprimer les 2 tools parasites (ils ne doivent pas être versionnés dans EchoNull).
-  - Corriger perf_timer en PEP 695 (UP047).
-  - Supprimer tout workflow BareFlux présent dans .github/workflows (hors périmètre module-2).
-  - Optionnel: renommer .github/workflows/common.yml selon son `name:` pour corriger l'affichage GitHub Actions.
+But:
+- Aligner la CI sur Python 3.12+ (cohérent avec PEP 695).
+- Collecter une couverture réelle (remplacer `--cov=src` par `--cov=.`).
+- Nettoyer le `PYTHONPATH` (src -> .).
 
-Procédure:
-  1) Dézip à la racine du repo EchoNull.
-  2) Dry-run:
-       python tools/sanitize_echonull.py --dry-run
-       cat _echonull_sanitize_report.json
-  3) Apply:
-       python tools/sanitize_echonull.py --apply
-  4) Vérifier:
-       git status
-       git diff
-  5) Commit + push sur la branche exécutée par CI.
+Application:
+1) Dézip à la racine du repo EchoNull.
+2) Exécute:
+     bash scripts/echonull_fix_ci.sh
+3) Vérifie:
+     git diff
+4) Commit + push:
+     git commit -am "ci: py312-only + fix coverage target"
+     git push
 
-Attendu après commit:
-  - Disparition des erreurs Ruff listées ci-dessus.
+Notes:
+- Le script fait un backup: .github/workflows/ci.yml.bak
+- Si tu veux rester compatible py3.10/py3.11, il faut *revenir* à un perf_timer non-PEP695
+  (TypeVar/ParamSpec) + config Ruff adaptée. Ce bundle ne vise pas ce régime-là.
