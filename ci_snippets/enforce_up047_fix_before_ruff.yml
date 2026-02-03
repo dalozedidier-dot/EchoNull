@@ -1,0 +1,7 @@
+# Snippet à insérer dans .github/workflows/ci.yml (job lint) AVANT `ruff check .`
+# Objectif: si quelqu'un oublie de commiter le fix, le job échoue avec diff explicite.
+
+- name: Enforce UP047 fix (perf_timer must be PEP 695)
+  run: |
+    python tools/fix_up047_perf_timer.py --file common/utils.py
+    git diff --exit-code || (echo "WORKTREE MODIFIED: commit the changes below" && git diff && exit 1)
