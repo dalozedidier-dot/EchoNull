@@ -1,7 +1,7 @@
-EchoNull — patch Ruff UP047 (perf_timer) — logs_56229486958
+EchoNull — patch Ruff UP047 (perf_timer) — logs_56230480302
 Date: 2026-02-03
 
-Constat:
+Constat (logs_56230480302.zip):
   - ruff check . -> common/utils.py:30:5: UP047 Generic function `perf_timer` should use type parameters
 
 Correctif:
