@@ -1,14 +1,24 @@
-EchoNull CI patch: afficher les lignes manquantes de coverage (term-missing) tout en gardant py3.12-only.
+EchoNull CI: correction coverage 100%
 
-Contexte:
-- La CI est désormais cohérente avec PEP 695 (Python 3.12 uniquement).
-- Les tests passent mais la couverture réelle est ~96% et fail-under=100 fait échouer le job.
+But
+Exclure des rapports de couverture les fichiers qui ne doivent pas etre couverts par les tests unitaires:
+benchmarks, tests, tools.
 
-But de ce bundle:
-- Ajouter un rapport "term-missing" dans les logs CI pour identifier précisément les lignes non couvertes.
-- Ne change pas le seuil (fail-under=100) : l'échec reste un échec réel tant que la couverture n'est pas à 100.
+Pourquoi
+Les logs montrent 16 lignes manquantes uniquement dans:
+- benchmarks/benchmark_graph_analysis.py (0%, non execute par pytest)
+- tests/conftest.py et tests/test_reproducibility.py (branches non prises)
 
-Application:
-1) Remplacer .github/workflows/ci.yml par celui du bundle.
-2) Commit + push.
-3) Relancer Actions et lire la section "coverage" (term-missing) pour savoir quoi tester/exclure.
+Contenu
+- .coveragerc: configuration Coverage.py appliquee par pytest-cov
+- scripts/fix_ci_add_cov_config.sh: ajoute --cov-config=.coveragerc aux commandes pytest des workflows
+
+Application
+1) Copier .coveragerc a la racine du repo
+2) Executer: bash scripts/fix_ci_add_cov_config.sh
+3) Verifier: git diff
+4) Commit et push
+
+Note
+Si tu preferes ne pas modifier le workflow, pytest-cov detecte souvent .coveragerc automatiquement.
+Le script rend le lien explicite pour eviter tout comportement dependant de l'environnement.

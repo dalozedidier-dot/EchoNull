@@ -1,3 +1,5 @@
-Add this to .gitignore to avoid committing workflow backups:
-
-.github/workflows/*.bak
+Ajoute ceci a .gitignore si besoin:
+*.bak
+htmlcov/
+coverage.xml
+test-results/
