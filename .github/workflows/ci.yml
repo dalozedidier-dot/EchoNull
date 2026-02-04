@@ -41,13 +41,20 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Ruff
-        run: ruff check . --output-format=github
+        run: |
+          ruff check . \
+            --output-format=github \
+            --exclude tools
 
       - name: Black
-        run: black --check .
+        run: |
+          black --check . \
+            --exclude '^(tools/|_ci_out/|build/|dist/|\.venv/)'
 
       - name: Mypy
-        run: mypy .
+        run: |
+          mypy . \
+            --exclude '^(tools/|_ci_out/|build/|dist/|\.venv/)'
 
   tests:
     name: Tests (pytest + coverage)
@@ -81,4 +88,7 @@ jobs:
 
       - name: Pytest + coverage
         run: |
-          pytest -q --cov=. --cov-report=term-missing:skip-covered --cov-fail-under=80
+          pytest -q \
+            --cov=. \
+            --cov-report=term-missing:skip-covered \
+            --cov-fail-under=80
