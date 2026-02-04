@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "**/*.md"
@@ -11,13 +11,19 @@ on:
       - "docs/**"
       - "**/*.md"
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   lint:
+    name: Lint (ruff, black, mypy)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -29,10 +35,10 @@ jobs:
             requirements.txt
             requirements-dev.txt
 
-      - name: Install tooling
+      - name: Install deps
         run: |
           python -m pip install -U pip
-          pip install -r requirements-dev.txt
+          pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Ruff
         run: ruff check . --output-format=github
@@ -43,15 +49,20 @@ jobs:
       - name: Mypy
         run: mypy .
 
-  test:
+  tests:
+    name: Tests (pytest + coverage)
     needs: lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12"]
+
     env:
       PYTHONPATH: .
+
     steps:
       - uses: actions/checkout@v4
 
@@ -68,6 +79,6 @@ jobs:
           python -m pip install -U pip
           pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Tests + coverage
+      - name: Pytest + coverage
         run: |
-          pytest -q --cov=. --cov-report=term-missing:skip-covered tests/
+          pytest -q --cov=. --cov-report=term-missing:skip-covered --cov-fail-under=80
