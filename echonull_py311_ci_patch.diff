@@ -1,0 +1,248 @@
+--- a/common/utils.py
++++ b/common/utils.py
+@@ -6,7 +6,7 @@
+ from collections.abc import Callable
+ from functools import wraps
+ from pathlib import Path
+-from typing import Any, Protocol, cast
++from typing import Any, ParamSpec, Protocol, TypeVar, cast
+ 
+ logger = logging.getLogger("EchoNull")
+ if not logger.handlers:
+@@ -24,16 +24,25 @@
+     return sha256.hexdigest()
+ 
+ 
+-def perf_timer[F: Callable[..., Any]](func: F) -> F:
++from typing import ParamSpec, TypeVar
++
++P = ParamSpec("P")
++R = TypeVar("R")
++
++
++def perf_timer(func: Callable[P, R]) -> Callable[P, R]:
++    """Decorator: logs how long the wrapped function took."""
++
+     @wraps(func)
+-    def wrapper(*args: Any, **kwargs: Any) -> Any:
++    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+         start = time.perf_counter()
+         result = func(*args, **kwargs)
+         duration = time.perf_counter() - start
+         logger.info("%s took %.4fs", func.__name__, duration)
+         return result
+ 
+-    return cast(F, wrapper)
++    return cast(Callable[P, R], wrapper)
++
+ 
+ 
+ class AnalyzerProtocol(Protocol):
+
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,10 +1,10 @@
+ [tool.black]
+ line-length = 100
+-target-version = ["py312"]
++target-version = ["py311"]
+ 
+ [tool.ruff]
+ line-length = 100
+-target-version = "py312"
++target-version = "py311"
+ fix = false
+ 
+ [tool.ruff.lint]
+@@ -16,7 +16,7 @@
+ known-first-party = ["common", "orchestrator", "graph_analysis", "delta_stats", "mark_counts"]
+ 
+ [tool.mypy]
+-python_version = "3.12"
++python_version = "3.11"
+ ignore_missing_imports = true
+ strict = true
+ warn_unused_configs = true
+
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -4,61 +4,81 @@
+   push:
+   pull_request:
+ 
++concurrency:
++  group: ci-${{ github.ref }}
++  cancel-in-progress: true
++
+ jobs:
+   lint:
+     runs-on: ubuntu-latest
+     steps:
+-      - name: Checkout code
+-        uses: actions/checkout@v4
++      - uses: actions/checkout@v4
+ 
+-      - name: Set up Python
+-        uses: actions/setup-python@v5
++      - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
++          cache: "pip"
++          cache-dependency-path: |
++            requirements-dev.txt
++            requirements.txt
+ 
+-      - name: Install dependencies
++      - name: Install tooling
+         run: |
+           python -m pip install --upgrade pip
+-          pip install ruff
++          pip install -r requirements-dev.txt
+ 
+-      - name: Lint with Ruff
+-        run: ruff check . --output-format=github
++      - name: Ruff
++        run: |
++          ruff check common orchestrator graph_analysis delta_stats mark_counts tests
++
++      - name: Black
++        run: |
++          black --check common orchestrator graph_analysis delta_stats mark_counts tests
++
++      - name: Mypy
++        run: |
++          mypy common orchestrator graph_analysis delta_stats mark_counts tests
+ 
+   test:
+-    runs-on: ${{ matrix.os }}
+     strategy:
+       fail-fast: false
+       matrix:
+         os: [ubuntu-latest, macos-latest]
+-        python-version: ["3.12"]
++        python-version: ["3.11", "3.12"]
++    runs-on: ${{ matrix.os }}
+     env:
+       PYTHONPATH: .
+     steps:
+-      - name: Checkout code
+-        uses: actions/checkout@v4
++      - uses: actions/checkout@v4
+ 
+-      - name: Set up Python ${{ matrix.python-version }}
+-        uses: actions/setup-python@v5
++      - uses: actions/setup-python@v5
+         with:
+           python-version: ${{ matrix.python-version }}
++          cache: "pip"
++          cache-dependency-path: |
++            requirements.txt
++            requirements-dev.txt
++            common/requirements.txt
++            graph_analysis/requirements.txt
++            delta_stats/requirements.txt
++            mark_counts/requirements.txt
++            orchestrator/requirements.txt
+ 
+-      - name: Install dependencies
++      - name: Install deps
+         run: |
+           python -m pip install --upgrade pip
+-          pip install -r requirements.txt
+-          pip install pytest pytest-cov pandas networkx
++          pip install -r requirements.txt -r requirements-dev.txt
++          pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
+ 
+-      - name: Run tests with coverage
+-        run: pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml --cov-report=html --junitxml=test-results/junit.xml tests/
++      - name: Run tests + coverage
++        run: |
++          pytest --cov=. --cov-report=term-missing:skip-covered --cov-fail-under=100
+ 
+-      - name: Upload coverage & test results
++      - name: Upload test results (if any)
+         if: always()
+         uses: actions/upload-artifact@v4
+         with:
+           name: test-results-py${{ matrix.python-version }}-${{ matrix.os }}
+           path: |
+-            coverage.xml
+-            htmlcov/
+-            test-results/junit.xml
+-          retention-days: 14
+-          if-no-files-found: warn
++            .pytest_cache
++          if-no-files-found: ignore
+
+--- a/.github/workflows/sweep.yml
++++ b/.github/workflows/sweep.yml
+@@ -12,7 +12,7 @@
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
+       - name: Install
+         run: |
+           python -m pip install --upgrade pip
+
+--- a/.github/workflows/extended_tests.yml
++++ b/.github/workflows/extended_tests.yml
+@@ -26,7 +26,7 @@
+ 
+       - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
+ 
+       - name: Install
+         run: |
+
+--- a/.github/workflows/orchestrator.yml
++++ b/.github/workflows/orchestrator.yml
+@@ -34,7 +34,7 @@
+ 
+       - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
+ 
+       - name: Install
+         run: |
+
+--- a/.github/workflows/delta_stats.yml
++++ b/.github/workflows/delta_stats.yml
+@@ -22,7 +22,7 @@
+ 
+       - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
+ 
+       - name: Install
+         run: |
+
+--- a/.github/workflows/graph_analysis.yml
++++ b/.github/workflows/graph_analysis.yml
+@@ -26,7 +26,7 @@
+ 
+       - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
+ 
+       - name: Install
+         run: |
+
+--- a/.github/workflows/mark_counts.yml
++++ b/.github/workflows/mark_counts.yml
+@@ -22,7 +22,7 @@
+ 
+       - uses: actions/setup-python@v5
+         with:
+-          python-version: "3.12"
++          python-version: "3.11"
+ 
+       - name: Install
+         run: |

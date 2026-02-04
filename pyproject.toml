@@ -1,10 +1,10 @@
 [tool.black]
 line-length = 100
-target-version = ["py312"]
+target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311"
 fix = false
 
 [tool.ruff.lint]
@@ -16,7 +16,7 @@ mccabe.max-complexity = 10
 known-first-party = ["common", "orchestrator", "graph_analysis", "delta_stats", "mark_counts"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 ignore_missing_imports = true
 strict = true
 warn_unused_configs = true

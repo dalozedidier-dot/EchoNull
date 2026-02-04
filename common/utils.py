@@ -6,7 +6,7 @@ import time
 from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Protocol, cast
+from typing import Any, ParamSpec, Protocol, TypeVar, cast
 
 logger = logging.getLogger("EchoNull")
 if not logger.handlers:
@@ -24,16 +24,25 @@ def compute_sha256(path: Path) -> str:
     return sha256.hexdigest()
 
 
-def perf_timer[F: Callable[..., Any]](func: F) -> F:
+from typing import ParamSpec, TypeVar
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def perf_timer(func: Callable[P, R]) -> Callable[P, R]:
+    """Decorator: logs how long the wrapped function took."""
+
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         start = time.perf_counter()
         result = func(*args, **kwargs)
         duration = time.perf_counter() - start
         logger.info("%s took %.4fs", func.__name__, duration)
         return result
 
-    return cast(F, wrapper)
+    return cast(Callable[P, R], wrapper)
+
 
 
 class AnalyzerProtocol(Protocol):
