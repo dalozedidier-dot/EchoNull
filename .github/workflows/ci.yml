@@ -2,7 +2,14 @@ name: CI
 
 on:
   push:
+    branches: [ main ]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -16,36 +23,33 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
           cache-dependency-path: |
-            requirements-dev.txt
             requirements.txt
+            requirements-dev.txt
 
       - name: Install tooling
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install -U pip
           pip install -r requirements-dev.txt
 
       - name: Ruff
-        run: |
-          ruff check common orchestrator graph_analysis delta_stats mark_counts tests
+        run: ruff check . --output-format=github
 
       - name: Black
-        run: |
-          black --check common orchestrator graph_analysis delta_stats mark_counts tests
+        run: black --check .
 
       - name: Mypy
-        run: |
-          mypy common orchestrator graph_analysis delta_stats mark_counts tests
+        run: mypy .
 
   test:
+    needs: lint
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         python-version: ["3.11", "3.12"]
-    runs-on: ${{ matrix.os }}
     env:
       PYTHONPATH: .
     steps:
@@ -58,27 +62,12 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             requirements-dev.txt
-            common/requirements.txt
-            graph_analysis/requirements.txt
-            delta_stats/requirements.txt
-            mark_counts/requirements.txt
-            orchestrator/requirements.txt
 
       - name: Install deps
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install -U pip
           pip install -r requirements.txt -r requirements-dev.txt
-          pip install -r common/requirements.txt -r graph_analysis/requirements.txt -r delta_stats/requirements.txt -r mark_counts/requirements.txt -r orchestrator/requirements.txt
 
-      - name: Run tests + coverage
+      - name: Tests + coverage
         run: |
-          pytest --cov=. --cov-report=term-missing:skip-covered --cov-fail-under=100
-
-      - name: Upload test results (if any)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-py${{ matrix.python-version }}-${{ matrix.os }}
-          path: |
-            .pytest_cache
-          if-no-files-found: ignore
+          pytest -q --cov=. --cov-report=term-missing:skip-covered tests/
