@@ -24,15 +24,11 @@ def compute_sha256(path: Path) -> str:
     return sha256.hexdigest()
 
 
-from typing import ParamSpec, TypeVar
-
 P = ParamSpec("P")
 R = TypeVar("R")
 
 
 def perf_timer(func: Callable[P, R]) -> Callable[P, R]:
-    """Decorator: logs how long the wrapped function took."""
-
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         start = time.perf_counter()
@@ -42,7 +38,6 @@ def perf_timer(func: Callable[P, R]) -> Callable[P, R]:
         return result
 
     return cast(Callable[P, R], wrapper)
-
 
 
 class AnalyzerProtocol(Protocol):
