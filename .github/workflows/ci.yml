@@ -49,12 +49,12 @@ jobs:
       - name: Black
         run: |
           black --check . \
-            --exclude '^(tools/|_ci_out/|build/|dist/|\.venv/)'
+            --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv)/'
 
       - name: Mypy
         run: |
           mypy . \
-            --exclude '^(tools/|_ci_out/|build/|dist/|\.venv/)'
+            --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv)/'
 
   tests:
     name: Tests (pytest + coverage)
