@@ -1,29 +1,49 @@
+"""Compatibility shim for the historical ``null_trace`` entrypoint.
+
+EchoNull no longer vendors the ``nulltrace`` package. This module keeps a stable
+CLI entrypoint, but degrades gracefully when ``nulltrace`` is not installed.
+"""
+
 from __future__ import annotations
 
-import sys
+import importlib
+from typing import Optional, Sequence, cast, Callable, Any
 
 
-def main() -> int:
-    """Optional shim for an external 'nulltrace' tool.
+_MainFn = Callable[[Optional[Sequence[str]]], int]
 
-    EchoNull does not vendor the 'nulltrace' package. This file is kept only as a
-    compatibility entrypoint. If you need it, install the external dependency
-    that provides `nulltrace.null_trace`.
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    """Run the external ``nulltrace`` entrypoint if available.
+
+    Returns:
+        0 on success. Non-zero when ``nulltrace`` is missing or invalid.
     """
-
     try:
-        from nulltrace.null_trace import main as _main  # type: ignore[import-not-found]
-    except Exception as exc:
+        mod = importlib.import_module("nulltrace.null_trace")
+    except ModuleNotFoundError:
         print(
-            "EchoNull: optional dependency 'nulltrace' is not installed "
-            "(cannot import nulltrace.null_trace).",
-            file=sys.stderr,
+            "nulltrace is not installed. Install it to use this entrypoint, "
+            "or run EchoNull via orchestrator/sweep workflows."
         )
-        print(f"Details: {exc!r}", file=sys.stderr)
         return 2
 
-    _main()
-    return 0
+    main_obj: Any = getattr(mod, "main", None)
+    if not callable(main_obj):
+        print("nulltrace.null_trace.main is missing or not callable.")
+        return 3
+
+    main_fn = cast(_MainFn, main_obj)
+    try:
+        return int(main_fn(argv))
+    except SystemExit as exc:
+        # Preserve conventional CLI behavior.
+        code = exc.code
+        if code is None:
+            return 0
+        if isinstance(code, int):
+            return code
+        return 1
 
 
 if __name__ == "__main__":
