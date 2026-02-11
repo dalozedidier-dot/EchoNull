@@ -1,4 +1,4 @@
-EchoNull (v0.1.1)
+EchoNull (v0.1.2)
 
 Objectif
 

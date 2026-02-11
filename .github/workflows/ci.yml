@@ -91,4 +91,4 @@ jobs:
           pytest -q \
             --cov=. \
             --cov-report=term-missing:skip-covered \
-            --cov-fail-under=80
+            --cov-fail-under=100

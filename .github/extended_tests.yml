@@ -1,32 +1,9 @@
-name: extended-tests
+# DEPRECATED / INFO
+#
+# GitHub Actions ne détecte que les workflows situés dans : .github/workflows/
+# Ce fichier n'est donc pas exécuté. Le workflow actif est :
+#   .github/workflows/extended_tests.yml
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "23 2 * * *"
-
-jobs:
-  extended:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-          pip install -r common/requirements.txt
-          pip install -r graph_analysis/requirements.txt
-          pip install -r delta_stats/requirements.txt
-          pip install -r mark_counts/requirements.txt
-          pip install -r orchestrator/requirements.txt
-
-      - name: Run extended tests
-        env:
-          PYTHONPATH: .
-        run: |
-          pytest -q extended_tests
+deprecated: true
+active_workflow: .github/workflows/extended_tests.yml
+reason: "GitHub Actions ignore les workflows hors .github/workflows"

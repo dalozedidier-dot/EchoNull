@@ -1,0 +1,16 @@
+Application
+
+1) Ouvre ton repo EchoNull à la racine.
+2) Dézippe ce patch à la racine en écrasant les fichiers.
+3) Commit conseillé :
+   git add -A
+   git commit -m "chore: align gates + clarify ghost workflow + safe null_trace"
+
+Fichiers modifiés
+- VERSION (0.1.2)
+- README.md (version + gates cohérents)
+- CHANGELOG.md (entrée 0.1.2)
+- PATCH_NOTES.md (notes 0.1.2)
+- .github/workflows/ci.yml (--cov-fail-under=100)
+- .github/extended_tests.yml (info: non exécuté)
+- src/null_trace.py (import optionnel)
