@@ -7,13 +7,14 @@ CLI entrypoint, but degrades gracefully when ``nulltrace`` is not installed.
 from __future__ import annotations
 
 import importlib
-from typing import Optional, Sequence, cast, Callable, Any
+from collections.abc import Callable, Sequence
+from typing import Any, cast
 
 
-_MainFn = Callable[[Optional[Sequence[str]]], int]
+_MainFn = Callable[[Sequence[str] | None], int]
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """Run the external ``nulltrace`` entrypoint if available.
 
     Returns:
@@ -37,7 +38,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         return int(main_fn(argv))
     except SystemExit as exc:
-        # Preserve conventional CLI behavior.
         code = exc.code
         if code is None:
             return 0
