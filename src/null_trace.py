@@ -10,7 +10,6 @@ import importlib
 from collections.abc import Callable, Sequence
 from typing import Any, cast
 
-
 _MainFn = Callable[[Sequence[str] | None], int]
 
 
@@ -38,6 +37,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return int(main_fn(argv))
     except SystemExit as exc:
+        # Preserve conventional CLI behavior.
         code = exc.code
         if code is None:
             return 0
