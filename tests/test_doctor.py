@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from importlib.metadata import PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 
 from pytest import CaptureFixture, MonkeyPatch
 
@@ -33,14 +33,12 @@ def test_doctor_default_output_ok(capsys: CaptureFixture[str]) -> None:
 
 
 def test_doctor_missing_dep_branch(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
-    orig: Callable[[str], str] = doctor.version
-
     def fake_version(name: str) -> str:
         if name == "numpy":
             raise PackageNotFoundError(name)
-        return orig(name)
+        return pkg_version(name)
 
-    monkeypatch.setattr(doctor, "version", fake_version)
+    monkeypatch.setattr("echonull.cli.doctor.version", fake_version)
     rc = doctor.main([])
     assert rc == 2
     out = capsys.readouterr().out
