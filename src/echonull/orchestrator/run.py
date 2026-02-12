@@ -31,7 +31,10 @@ class Params:
 
 
 def _generate_dataset_csv(
-    path: Path, seed: int, rows: int = 256, cols: int = 8
+    path: Path,
+    seed: int,
+    rows: int = 256,
+    cols: int = 8,
 ) -> None:
     rng = np.random.default_rng(seed)
     data = rng.normal(size=(rows, cols)).astype(np.float32)
@@ -99,7 +102,8 @@ def run(params: Params) -> tuple[list[dict[str, Any]], Path | None]:
 
     with ThreadPoolExecutor(max_workers=max(1, params.workers)) as pool:
         futures = [
-            pool.submit(process_run, i, params) for i in range(1, params.runs + 1)
+            pool.submit(process_run, i, params)
+            for i in range(1, params.runs + 1)
         ]
         results = [f.result() for f in futures]
 
