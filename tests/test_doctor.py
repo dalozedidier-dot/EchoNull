@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 
-from echonull.cli import doctor
 from pytest import CaptureFixture, MonkeyPatch
+
+from echonull.cli import doctor
 
 
 def test_collect_info_shape() -> None:
