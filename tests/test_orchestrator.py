@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from orchestrator.run import Params, _parse_thresholds, process_run, run
+from echonull.orchestrator.run import Params, _parse_thresholds, process_run, run
 
 
 def test_parse_thresholds() -> None:

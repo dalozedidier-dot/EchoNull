@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GraphAnalysis report",
+  "type": "object",
+  "required": ["nodes", "edges", "jaccard"],
+  "properties": {
+    "nodes": { "type": "integer", "minimum": 0 },
+    "edges": { "type": "integer", "minimum": 0 },
+    "jaccard": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

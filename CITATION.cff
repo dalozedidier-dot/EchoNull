@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it."
+title: "EchoNull"
+version: "0.1.2"
+type: software
+authors:
+  - name: "dalozedidier-dot"
+repository-code: "https://github.com/dalozedidier-dot/EchoNull"
+license: MIT

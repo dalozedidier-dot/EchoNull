@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from common.utils import compute_sha256, perf_timer
+from echonull.common.utils import compute_sha256, perf_timer
 
 
 def test_compute_sha256(tmp_path: Path) -> None:

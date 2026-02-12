@@ -1,16 +1,18 @@
-EchoNull updates v0.1.2 (consolidated)
+EchoNull 64-updates pack (release-ready v0.1.2)
 
-Files included:
-- .github/workflows/ci.yml
-- src/null_trace.py
-- .github/extended_tests.yml (info only, not executed by Actions)
-- VERSION, README.md, CHANGELOG.md, PATCH_NOTES.md
+How to apply
 
-How to apply:
-1) Unzip at the repository root (overwrite files).
-2) Commit and push.
-3) Check GitHub Actions: CI should pass (lint + tests with coverage >= 100%).
+1) Unzip at repository root (overwrite files).
+2) Remove old top-level packages from the distribution (do not delete them locally if you still use them):
+   - packaging now installs only src/echonull.*
+3) Commit and push.
+4) Check GitHub Actions:
+   - CI workflow builds wheel and runs smoke install
+   - extended-tests and sweep still work
 
-Notes:
-- Black exclude regex now matches absolute paths on GitHub runners.
-- null_trace shim uses dynamic import and is ruff/mypy clean.
+Local checks
+
+- make install
+- make lint
+- make test
+- make build

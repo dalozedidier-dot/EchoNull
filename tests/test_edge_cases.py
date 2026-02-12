@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from orchestrator.run import Params, _parse_thresholds, run
+from echonull.orchestrator.run import Params, _parse_thresholds, run
 
 
 def test_parse_thresholds_rejects_invalid() -> None:

@@ -3,7 +3,7 @@ omit =
     benchmarks/*
     tests/*
     tools/*
-    orchestrator/__main__.py
+    **/__main__.py
 
 [report]
 exclude_lines =

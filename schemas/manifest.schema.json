@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EchoNull manifest",
+  "type": "object",
+  "required": ["schema_version", "name", "run_id", "runs", "thresholds", "seed_base", "overview_sha256", "provenance"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "name": { "const": "EchoNull" },
+    "run_id": { "type": "string" },
+    "runs": { "type": "integer", "minimum": 0 },
+    "thresholds": { "type": "array", "items": { "type": "number" } },
+    "seed_base": { "type": "integer" },
+    "overview_sha256": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "provenance": {
+      "type": "object",
+      "required": ["git_sha", "ci", "python"],
+      "properties": {
+        "git_sha": { "type": ["string", "null"] },
+        "ci": { "type": "boolean" },
+        "python": { "type": "string" }
+      }
+    }
+  }
+}

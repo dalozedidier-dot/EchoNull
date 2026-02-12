@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
-from common.utils import compute_sha256
-from orchestrator.run import Params, run
+from echonull.common.utils import compute_sha256
+from echonull.orchestrator.run import Params, run
 
 
 def _read_json(path: Path) -> dict[str, Any]:

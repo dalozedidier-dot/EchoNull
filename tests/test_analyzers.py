@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from delta_stats.analyzer import DeltaStatsAnalyzer
-from graph_analysis.analyzer import GraphAnalysisAnalyzer
-from mark_counts.analyzer import MarkCountsAnalyzer
+from echonull.delta_stats.analyzer import DeltaStatsAnalyzer
+from echonull.graph_analysis.analyzer import GraphAnalysisAnalyzer
+from echonull.mark_counts.analyzer import MarkCountsAnalyzer
 
 
 def test_graph_analysis_even_odd(tmp_path: Path) -> None:

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-from orchestrator.run import build_parser, main
+from echonull.orchestrator.run import build_parser, cli_main, main
 
 
 def test_build_parser_defaults_are_sane() -> None:
@@ -41,3 +42,26 @@ def test_main_writes_outputs(tmp_path: Path) -> None:
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["name"] == "EchoNull"
     assert manifest["runs"] == 2
+
+
+def test_cli_main_uses_sys_argv(tmp_path: Path, monkeypatch) -> None:
+    out = tmp_path / "_out"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "echonull-orchestrator",
+            "--runs",
+            "1",
+            "--thresholds",
+            "0.25",
+            "--out",
+            str(out),
+            "--seed-base",
+            "1",
+            "--workers",
+            "1",
+        ],
+    )
+    assert cli_main() == 0
+    assert (out / "overview.json").exists()

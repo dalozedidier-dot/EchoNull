@@ -1,0 +1,5 @@
+services:
+  echonull:
+    build: .
+    volumes:
+      - ./_ci_out_docker:/out
