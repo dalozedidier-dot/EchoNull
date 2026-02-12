@@ -1,50 +1,53 @@
-"""Compatibility shim for the historical ``null_trace`` entrypoint.
-
-EchoNull no longer vendors the ``nulltrace`` package. This module keeps a stable
-CLI entrypoint, but degrades gracefully when ``nulltrace`` is not installed.
-"""
-
 from __future__ import annotations
 
+import argparse
 import importlib
-from collections.abc import Callable, Sequence
-from typing import Any, cast
-
-_MainFn = Callable[[Sequence[str] | None], int]
+import json
+from typing import Any
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run the external ``nulltrace`` entrypoint if available.
-
-    Returns:
-        0 on success. Non-zero when ``nulltrace`` is missing or invalid.
-    """
+def _try_import_nulltrace() -> Any | None:
     try:
-        mod = importlib.import_module("nulltrace.null_trace")
+        return importlib.import_module("nulltrace")
     except ModuleNotFoundError:
-        print(
-            "nulltrace is not installed. Install it to use this entrypoint, "
-            "or run EchoNull via orchestrator/sweep workflows."
-        )
-        return 2
-
-    main_obj: Any = getattr(mod, "main", None)
-    if not callable(main_obj):
-        print("nulltrace.null_trace.main is missing or not callable.")
-        return 3
-
-    main_fn = cast(_MainFn, main_obj)
-    try:
-        return int(main_fn(argv))
-    except SystemExit as exc:
-        # Preserve conventional CLI behavior.
-        code = exc.code
-        if code is None:
-            return 0
-        if isinstance(code, int):
-            return code
-        return 1
+        return None
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="echonull-null-trace", description="Optional NullTrace probe")
+    p.add_argument("--json", action="store_true", help="Print JSON report")
+    p.add_argument("--quiet", action="store_true", help="Exit code only, no output")
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+
+    mod = _try_import_nulltrace()
+    ok = mod is not None
+    rc = 0 if ok else 2
+
+    if args.quiet:
+        return rc
+
+    payload = {
+        "ok": ok,
+        "nulltrace_version": getattr(mod, "__version__", None) if ok else None,
+        "message": None if ok else "nulltrace is not installed",
+    }
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        return rc
+
+    if ok:
+        ver = payload["nulltrace_version"] or "unknown"
+        print(f"nulltrace available ({ver})")
+    else:
+        print("nulltrace is not installed")
+
+    return rc
+
+
+def cli_main() -> int:
+    return main(None)
