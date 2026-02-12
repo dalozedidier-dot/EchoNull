@@ -2,34 +2,27 @@ from __future__ import annotations
 
 import json
 from types import SimpleNamespace
-from typing import Any
 
 from pytest import CaptureFixture, MonkeyPatch
 
 from echonull import null_trace
 
 
-def test_null_trace_missing_dependency(
-    monkeypatch: MonkeyPatch,
-    capsys: CaptureFixture[str],
-) -> None:
-    def boom(_name: str) -> Any:
+def test_null_trace_missing_dependency(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
+    def boom(_name: str):
         raise ModuleNotFoundError("nulltrace")
 
-    monkeypatch.setattr("echonull.null_trace.importlib.import_module", boom)
+    monkeypatch.setattr(null_trace.importlib, "import_module", boom)
     rc = null_trace.main([])
     assert rc == 2
     out = capsys.readouterr().out
     assert "nulltrace is not installed" in out
 
 
-def test_null_trace_available_json(
-    monkeypatch: MonkeyPatch,
-    capsys: CaptureFixture[str],
-) -> None:
+def test_null_trace_available_json(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
     dummy = SimpleNamespace(__version__="0.0.0")
-    monkeypatch.setattr("echonull.null_trace.importlib.import_module", lambda _name: dummy)
 
+    monkeypatch.setattr(null_trace.importlib, "import_module", lambda _name: dummy)
     rc = null_trace.main(["--json"])
     assert rc == 0
     out = capsys.readouterr().out
@@ -38,14 +31,24 @@ def test_null_trace_available_json(
     assert payload["nulltrace_version"] == "0.0.0"
 
 
-def test_null_trace_quiet(
-    monkeypatch: MonkeyPatch,
-    capsys: CaptureFixture[str],
-) -> None:
-    dummy = SimpleNamespace(__version__="0.0.0")
-    monkeypatch.setattr("echonull.null_trace.importlib.import_module", lambda _name: dummy)
+def test_null_trace_available_default_prints_unknown(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
+    dummy = SimpleNamespace()  # no __version__ -> "unknown"
+    monkeypatch.setattr(null_trace.importlib, "import_module", lambda _name: dummy)
+    rc = null_trace.main([])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "nulltrace available (unknown)" in out
 
+
+def test_null_trace_quiet(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
+    dummy = SimpleNamespace(__version__="0.0.0")
+    monkeypatch.setattr(null_trace.importlib, "import_module", lambda _name: dummy)
     rc = null_trace.main(["--quiet"])
     assert rc == 0
     out = capsys.readouterr().out
     assert out == ""
+
+
+def test_null_trace_cli_main_delegates(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setattr(null_trace, "main", lambda _argv: 123)
+    assert null_trace.cli_main() == 123
