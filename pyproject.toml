@@ -10,10 +10,6 @@ src = ["src"]
 # Avoid linting noise from scratch/artefact folders
 extend-exclude = ["mnt", "tools", "_ci_out", "build", "dist", ".venv"]
 
-# Backwards-compatible lint config (older Ruff reads these here)
-select = ["E", "F", "I", "B", "N", "UP", "SIM", "C4", "RUF"]
-ignore = []
-
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "N", "UP", "SIM", "C4", "RUF"]
 ignore = []
@@ -21,10 +17,6 @@ mccabe.max-complexity = 10
 
 # Ruff/isort config (newer Ruff)
 [tool.ruff.lint.isort]
-known-first-party = ["echonull", "benchmarks"]
-
-# Ruff/isort config (older Ruff)
-[tool.ruff.isort]
 known-first-party = ["echonull", "benchmarks"]
 
 [tool.mypy]
