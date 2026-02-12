@@ -15,26 +15,25 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    env:
-      PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install -e ".[dev]"
 
       - name: Run delta_stats
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+          SEED: ${{ inputs.seed }}
         run: |
           mkdir -p _ci_out
-          printf '%s
-'             'from pathlib import Path'             'from echonull.delta_stats.analyzer import DeltaStatsAnalyzer'             'out = Path("_ci_out")'             'out.mkdir(parents=True, exist_ok=True)'             'print(DeltaStatsAnalyzer().analyze(run_id=int("${{ inputs.run_id }}"), seed=int("${{ inputs.seed }}"), data=None, output_dir=out))'             > _ci_out/run_delta_stats.py
-          python _ci_out/run_delta_stats.py
+          python -c "import os; from pathlib import Path; from echonull.delta_stats.analyzer import DeltaStatsAnalyzer; out=Path('_ci_out'); out.mkdir(parents=True, exist_ok=True); print(DeltaStatsAnalyzer().analyze(run_id=int(os.environ['RUN_ID']), seed=int(os.environ['SEED']), data=None, output_dir=out))"
 
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
