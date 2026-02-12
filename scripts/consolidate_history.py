@@ -7,8 +7,16 @@ from pathlib import Path
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--in-dir", default="ci_metrics/raw", help="Folder containing per-run CSV summaries.")
-    ap.add_argument("--out", default="ci_metrics/history.csv", help="Append-only consolidated file.")
+    ap.add_argument(
+        "--in-dir",
+        default="ci_metrics/raw",
+        help="Folder containing per-run CSV summaries.",
+    )
+    ap.add_argument(
+        "--out",
+        default="ci_metrics/history.csv",
+        help="Append-only consolidated file.",
+    )
     args = ap.parse_args()
 
     in_dir = Path(args.in_dir)
@@ -25,7 +33,7 @@ def main() -> int:
         print("No input rows.")
         return 0
 
-    fieldnames = sorted({k for row in rows for k in row.keys()})
+    fieldnames = sorted({k for row in rows for k in row})
     with out.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()

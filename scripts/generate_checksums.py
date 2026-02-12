@@ -20,12 +20,14 @@ def main() -> int:
     args = ap.parse_args()
 
     root = Path(args.root).resolve()
+    skip_prefixes = (".git/", ".venv", "_ci_out", "dist/")
+
     lines: list[str] = []
     for p in sorted(root.rglob("*")):
         if not p.is_file():
             continue
         rel = p.relative_to(root).as_posix()
-        if rel.startswith(".git/") or rel.startswith(".venv") or rel.startswith("_ci_out") or rel.startswith("dist/"):
+        if any(rel.startswith(pfx) for pfx in skip_prefixes):
             continue
         lines.append(f"{sha256_file(p)}  {rel}")
 

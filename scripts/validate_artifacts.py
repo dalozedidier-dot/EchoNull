@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 REQUIRED_ROOT = ["overview.json", "manifest.json"]
 REQUIRED_RUN_FILES = [
     "multi.csv",
