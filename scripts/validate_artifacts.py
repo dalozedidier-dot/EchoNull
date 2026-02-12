@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
+
 
 REQUIRED_ROOT = ["overview.json", "manifest.json"]
 REQUIRED_RUN_FILES = [
@@ -14,7 +15,8 @@ REQUIRED_RUN_FILES = [
 
 
 def _load_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return cast(dict[str, Any], data)
 
 
 def validate_run_dir(run_dir: Path, thresholds: list[float]) -> list[str]:

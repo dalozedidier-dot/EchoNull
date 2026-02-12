@@ -4,6 +4,8 @@ import json
 import sys
 from pathlib import Path
 
+from pytest import MonkeyPatch
+
 from echonull.orchestrator.run import build_parser, cli_main, main
 
 
@@ -44,7 +46,7 @@ def test_main_writes_outputs(tmp_path: Path) -> None:
     assert manifest["runs"] == 2
 
 
-def test_cli_main_uses_sys_argv(tmp_path: Path, monkeypatch) -> None:
+def test_cli_main_uses_sys_argv(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     out = tmp_path / "_out"
     monkeypatch.setattr(
         sys,
