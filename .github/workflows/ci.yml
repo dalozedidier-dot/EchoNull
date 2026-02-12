@@ -40,17 +40,17 @@ jobs:
           python -m pip install -U pip
           pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Ruff
+      - name: Ruff (scoped)
         run: |
-          ruff check .             --output-format=github             --exclude tools             --exclude mnt
+          ruff check src tests scripts --config pyproject.toml --output-format=github
 
-      - name: Black
+      - name: Black (scoped)
         run: |
-          black --check .             --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv|mnt)/'
+          black --check src tests scripts
 
-      - name: Mypy
+      - name: Mypy (scoped)
         run: |
-          mypy .             --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv|mnt)/'
+          mypy src tests scripts
 
   tests:
     name: Tests (pytest + coverage)
