@@ -1,0 +1,20 @@
+{
+  "augmentation_note": "Original manifest preserved. This manifest_augmented.json adds provenance and checksums.",
+  "bundle_augmented_utc": "2026-02-12T17:02:30Z",
+  "bundle_name": "soak",
+  "checksums_file": "checksums.sha256",
+  "checksums_sha256": "e5de2eb4db897680866c5e9659892c1a5627bc99c05749b085a731261f336695",
+  "name": "EchoNull",
+  "overview_sha256": "6b2df097e444d0f14ec23081e536bf2d74eaad3d7f8c0159bc99037a06d86151",
+  "runs": 50,
+  "schema_version": "1.0.0",
+  "seed_base": 1000,
+  "source_artifact_zip": "echonull_soak_out.zip",
+  "source_artifact_zip_sha256": "c9d4e776b46d3525ab2b0d95b8aedbba2ffefd035df19c99c95733909021b4e0",
+  "thresholds": [
+    0.25,
+    0.5,
+    0.7,
+    0.8
+  ]
+}
