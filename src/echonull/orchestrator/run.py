@@ -31,10 +31,7 @@ class Params:
 
 
 def _generate_dataset_csv(
-    path: Path,
-    seed: int,
-    rows: int = 256,
-    cols: int = 8,
+    path: Path, seed: int, rows: int = 256, cols: int = 8
 ) -> None:
     rng = np.random.default_rng(seed)
     data = rng.normal(size=(rows, cols)).astype(np.float32)
@@ -79,8 +76,7 @@ def _make_run_id(params: Params) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="echonull-orchestrator",
-        description="EchoNull sweep runner",
+        prog="echonull-orchestrator", description="EchoNull sweep runner"
     )
     p.add_argument("--runs", type=int, default=10)
     p.add_argument("--thresholds", type=str, default="0.25,0.5,0.7,0.8")
