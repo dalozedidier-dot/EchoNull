@@ -30,7 +30,12 @@ class Params:
     zip_out: bool
 
 
-def _generate_dataset_csv(path: Path, seed: int, rows: int = 256, cols: int = 8) -> None:
+def _generate_dataset_csv(
+    path: Path,
+    seed: int,
+    rows: int = 256,
+    cols: int = 8,
+) -> None:
     rng = np.random.default_rng(seed)
     data = rng.normal(size=(rows, cols)).astype(np.float32)
     df = pd.DataFrame(data, columns=[f"c{i}" for i in range(cols)])
@@ -60,6 +65,7 @@ def process_run(run_id: int, params: Params) -> dict[str, Any]:
     hashes = {"multi.csv": compute_sha256(dataset_path)}
     return {"run_id": run_id, "results": results, "hashes": hashes}
 
+
 def _make_run_id(params: Params) -> str:
     payload = {
         "runs": params.runs,
@@ -72,7 +78,10 @@ def _make_run_id(params: Params) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="echonull-orchestrator", description="EchoNull sweep runner")
+    p = argparse.ArgumentParser(
+        prog="echonull-orchestrator",
+        description="EchoNull sweep runner",
+    )
     p.add_argument("--runs", type=int, default=10)
     p.add_argument("--thresholds", type=str, default="0.25,0.5,0.7,0.8")
     p.add_argument("--out", type=str, default="_out")
@@ -92,7 +101,10 @@ def run(params: Params) -> tuple[list[dict[str, Any]], Path | None]:
     params.out.mkdir(parents=True, exist_ok=True)
 
     with ProcessPoolExecutor(max_workers=params.workers) as pool:
-        futures = [pool.submit(process_run, i, params) for i in range(1, params.runs + 1)]
+        futures = [
+            pool.submit(process_run, i, params)
+            for i in range(1, params.runs + 1)
+        ]
         results = [f.result() for f in futures]
 
     overview_path = params.out / "overview.json"
