@@ -1,72 +1,3 @@
-[build-system]
-requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "echonull"
-version = "0.1.2"
-description = "Mini test bench for reproducible CI runs and auditable artifacts (JSON, CSV, hashes)."
-readme = "README.md"
-requires-python = ">=3.11"
-license = { file = "LICENSE" }
-authors = [{ name = "dalozedidier-dot" }]
-keywords = ["ci", "reproducibility", "artifacts", "benchmark"]
-classifiers = [
-  "Development Status :: 3 - Alpha",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Operating System :: OS Independent",
-]
-
-dependencies = [
-  "numpy>=2.0.0",
-  "pandas>=2.2.2",
-  "networkx>=3.3",
-]
-
-[project.optional-dependencies]
-dev = [
-  "black==24.10.0",
-  "ruff==0.6.9",
-  "mypy==1.11.2",
-  "pytest==8.3.3",
-  "pytest-cov==5.0.0",
-  "types-setuptools",
-  "build>=1.2.2",
-  "twine>=5.1.1",
-  "pip-tools>=7.4.1",
-]
-sbom = [
-  "cyclonedx-bom>=4.6.0",
-]
-
-viz = [
-  "matplotlib>=3.9.0",
-]
-
-api = [
-  "fastapi>=0.110.0",
-  "uvicorn>=0.29.0",
-]
-
-[project.urls]
-Homepage = "https://github.com/dalozedidier-dot/EchoNull"
-Repository = "https://github.com/dalozedidier-dot/EchoNull"
-Issues = "https://github.com/dalozedidier-dot/EchoNull/issues"
-
-[project.scripts]
-echonull-orchestrator = "echonull.orchestrator.run:cli_main"
-echonull-doctor = "echonull.cli.doctor:main"
-echonull-null-trace = "echonull.null_trace:main"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
 [tool.black]
 line-length = 100
 target-version = ["py311"]
@@ -82,7 +13,7 @@ ignore = []
 mccabe.max-complexity = 10
 
 [tool.ruff.lint.isort]
-known-first-party = ["echonull"]
+known-first-party = ["echonull", "benchmarks"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -99,7 +30,7 @@ testpaths = ["tests"]
 [tool.coverage.run]
 branch = false
 source = ["echonull"]
-omit = ["**/__main__.py", "tools/**", "benchmarks/**"]
+omit = ["**/__main__.py"]
 
 [tool.coverage.report]
 show_missing = true
