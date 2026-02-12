@@ -102,8 +102,7 @@ def run(params: Params) -> tuple[list[dict[str, Any]], Path | None]:
 
     with ProcessPoolExecutor(max_workers=params.workers) as pool:
         futures = [
-            pool.submit(process_run, i, params)
-            for i in range(1, params.runs + 1)
+            pool.submit(process_run, i, params) for i in range(1, params.runs + 1)
         ]
         results = [f.result() for f in futures]
 
