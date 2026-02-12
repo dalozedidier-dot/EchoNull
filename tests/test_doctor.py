@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import runpy
+import sys
 from importlib.metadata import PackageNotFoundError
-from typing import Callable
+from importlib.metadata import version as pkg_version
 
 from pytest import CaptureFixture, MonkeyPatch
 
@@ -33,14 +35,12 @@ def test_doctor_default_output_ok(capsys: CaptureFixture[str]) -> None:
 
 
 def test_doctor_missing_dep_branch(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
-    orig: Callable[[str], str] = doctor.version
-
     def fake_version(name: str) -> str:
         if name == "numpy":
             raise PackageNotFoundError(name)
-        return orig(name)
+        return pkg_version(name)
 
-    monkeypatch.setattr(doctor, "version", fake_version)
+    monkeypatch.setattr("echonull.cli.doctor.version", fake_version)
     rc = doctor.main([])
     assert rc == 2
     out = capsys.readouterr().out
@@ -55,6 +55,21 @@ def test_doctor_quiet_only_exit_code(capsys: CaptureFixture[str]) -> None:
     assert out == ""
 
 
-def test_doctor_cli_main_delegates(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setattr(doctor, "main", lambda _argv: 123)
-    assert doctor.cli_main() == 123
+def test_doctor_main_guard_executes(monkeypatch: MonkeyPatch) -> None:
+    # Execute module as __main__ to cover the guard line(s) in doctor.py.
+    monkeypatch.setattr(sys, "argv", ["echonull-doctor", "--quiet"])
+    try:
+        runpy.run_module("echonull.cli.doctor", run_name="__main__")
+    except SystemExit as exc:
+        code = exc.code
+    else:
+        raise AssertionError("Expected SystemExit")
+
+    if code is None:
+        code_i = 0
+    elif isinstance(code, int):
+        code_i = code
+    else:
+        code_i = 1
+
+    assert code_i in (0, 2)
