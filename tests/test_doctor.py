@@ -32,9 +32,7 @@ def test_doctor_default_output_ok(capsys: CaptureFixture[str]) -> None:
     assert "EchoNull Doctor" in out
 
 
-def test_doctor_missing_dep_branch(
-    monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
-) -> None:
+def test_doctor_missing_dep_branch(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
     orig: Callable[[str], str] = doctor.version
 
     def fake_version(name: str) -> str:

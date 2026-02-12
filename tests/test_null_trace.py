@@ -8,9 +8,7 @@ from pytest import CaptureFixture, MonkeyPatch
 from echonull import null_trace
 
 
-def test_null_trace_missing_dependency(
-    monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
-) -> None:
+def test_null_trace_missing_dependency(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
     def boom(_name: str):
         raise ModuleNotFoundError("nulltrace")
 
@@ -21,12 +19,10 @@ def test_null_trace_missing_dependency(
     assert "nulltrace is not installed" in out
 
 
-def test_null_trace_available_json(
-    monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
-) -> None:
+def test_null_trace_available_json(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
     dummy = SimpleNamespace(__version__="0.0.0")
-
     monkeypatch.setattr(null_trace.importlib, "import_module", lambda _name: dummy)
+
     rc = null_trace.main(["--json"])
     assert rc == 0
     out = capsys.readouterr().out
@@ -38,6 +34,7 @@ def test_null_trace_available_json(
 def test_null_trace_quiet(monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]) -> None:
     dummy = SimpleNamespace(__version__="0.0.0")
     monkeypatch.setattr(null_trace.importlib, "import_module", lambda _name: dummy)
+
     rc = null_trace.main(["--quiet"])
     assert rc == 0
     out = capsys.readouterr().out

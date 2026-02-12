@@ -42,19 +42,15 @@ jobs:
 
       - name: Ruff
         run: |
-          ruff check . \
-            --output-format=github \
-            --exclude tools
+          ruff check .             --output-format=github             --exclude tools             --exclude mnt
 
       - name: Black
         run: |
-          black --check . \
-            --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv)/'
+          black --check .             --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv|mnt)/'
 
       - name: Mypy
         run: |
-          mypy . \
-            --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv)/'
+          mypy .             --exclude '(?:^|/)(tools|_ci_out|build|dist|\.venv|mnt)/'
 
   tests:
     name: Tests (pytest + coverage)
@@ -88,7 +84,4 @@ jobs:
 
       - name: Pytest + coverage
         run: |
-          pytest -q \
-            --cov=src/echonull \
-            --cov-report=term-missing:skip-covered \
-            --cov-fail-under=100
+          pytest -q             --cov=src/echonull             --cov-report=term-missing:skip-covered             --cov-fail-under=100
