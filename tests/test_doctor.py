@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 
 from pytest import CaptureFixture, MonkeyPatch
