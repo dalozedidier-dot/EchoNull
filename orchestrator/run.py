@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import sys
 import zipfile
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -12,10 +14,10 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from common.utils import compute_sha256, perf_timer
-from delta_stats.analyzer import DeltaStatsAnalyzer
-from graph_analysis.analyzer import GraphAnalysisAnalyzer
-from mark_counts.analyzer import MarkCountsAnalyzer
+from echonull.common.utils import compute_sha256, perf_timer
+from echonull.delta_stats.analyzer import DeltaStatsAnalyzer
+from echonull.graph_analysis.analyzer import GraphAnalysisAnalyzer
+from echonull.mark_counts.analyzer import MarkCountsAnalyzer
 
 
 @dataclass(frozen=True)
@@ -59,6 +61,13 @@ def process_run(run_id: int, params: Params) -> dict[str, Any]:
     return {"run_id": run_id, "results": results, "hashes": hashes}
 
 
+def _make_run_id(params: Params) -> str:
+    payload = {"runs": params.runs, "thresholds": params.thresholds, "seed_base": params.seed_base}
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    h = hashlib.sha256(raw).hexdigest()[:12]
+    return f"r{params.runs}_sb{params.seed_base}_{h}"
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="echonull-orchestrator", description="EchoNull sweep runner")
     p.add_argument("--runs", type=int, default=10)
@@ -79,26 +88,33 @@ def _parse_thresholds(s: str) -> list[float]:
 def run(params: Params) -> tuple[list[dict[str, Any]], Path | None]:
     params.out.mkdir(parents=True, exist_ok=True)
 
-    with ProcessPoolExecutor(max_workers=params.workers) as pool:
+    with ThreadPoolExecutor(max_workers=max(1, params.workers)) as pool:
         futures = [pool.submit(process_run, i, params) for i in range(1, params.runs + 1)]
         results = [f.result() for f in futures]
 
     overview_path = params.out / "overview.json"
     overview_path.write_text(
-        json.dumps(results, separators=(",", ":"), ensure_ascii=False),
+        json.dumps(results, separators=(",", ":"), ensure_ascii=False, sort_keys=True),
         encoding="utf-8",
     )
 
     manifest = {
+        "schema_version": "1.0.0",
         "name": "EchoNull",
+        "run_id": _make_run_id(params),
         "runs": params.runs,
         "thresholds": params.thresholds,
         "seed_base": params.seed_base,
         "overview_sha256": compute_sha256(overview_path),
+        "provenance": {
+            "git_sha": os.getenv("GITHUB_SHA"),
+            "ci": bool(os.getenv("GITHUB_ACTIONS")),
+            "python": sys.version.split()[0],
+        },
     }
     manifest_path = params.out / "manifest.json"
     manifest_path.write_text(
-        json.dumps(manifest, separators=(",", ":"), ensure_ascii=False),
+        json.dumps(manifest, separators=(",", ":"), ensure_ascii=False, sort_keys=True),
         encoding="utf-8",
     )
 
@@ -131,6 +147,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     run(params)
     return 0
+
+
+def cli_main() -> int:
+    """Console entrypoint."""
+    return main(None)
 
 
 if __name__ == "__main__":
