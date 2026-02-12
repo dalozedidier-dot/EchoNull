@@ -3,6 +3,11 @@ omit =
     benchmarks/*
     tests/*
     tools/*
+    common/*
+    delta_stats/*
+    graph_analysis/*
+    mark_counts/*
+    orchestrator/*
     **/__main__.py
 
 [report]

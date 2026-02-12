@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import zipfile
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -30,7 +30,9 @@ class Params:
     zip_out: bool
 
 
-def _generate_dataset_csv(path: Path, seed: int, rows: int = 256, cols: int = 8) -> None:
+def _generate_dataset_csv(
+    path: Path, seed: int, rows: int = 256, cols: int = 8
+) -> None:
     rng = np.random.default_rng(seed)
     data = rng.normal(size=(rows, cols)).astype(np.float32)
     df = pd.DataFrame(data, columns=[f"c{i}" for i in range(cols)])
@@ -62,14 +64,21 @@ def process_run(run_id: int, params: Params) -> dict[str, Any]:
 
 
 def _make_run_id(params: Params) -> str:
-    payload = {"runs": params.runs, "thresholds": params.thresholds, "seed_base": params.seed_base}
+    payload = {
+        "runs": params.runs,
+        "thresholds": params.thresholds,
+        "seed_base": params.seed_base,
+    }
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     h = hashlib.sha256(raw).hexdigest()[:12]
     return f"r{params.runs}_sb{params.seed_base}_{h}"
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="echonull-orchestrator", description="EchoNull sweep runner")
+    p = argparse.ArgumentParser(
+        prog="echonull-orchestrator",
+        description="EchoNull sweep runner",
+    )
     p.add_argument("--runs", type=int, default=10)
     p.add_argument("--thresholds", type=str, default="0.25,0.5,0.7,0.8")
     p.add_argument("--out", type=str, default="_out")
@@ -88,8 +97,10 @@ def _parse_thresholds(s: str) -> list[float]:
 def run(params: Params) -> tuple[list[dict[str, Any]], Path | None]:
     params.out.mkdir(parents=True, exist_ok=True)
 
-    with ProcessPoolExecutor(max_workers=params.workers) as pool:
-        futures = [pool.submit(process_run, i, params) for i in range(1, params.runs + 1)]
+    with ThreadPoolExecutor(max_workers=max(1, params.workers)) as pool:
+        futures = [
+            pool.submit(process_run, i, params) for i in range(1, params.runs + 1)
+        ]
         results = [f.result() for f in futures]
 
     overview_path = params.out / "overview.json"
@@ -150,6 +161,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def cli_main() -> int:
+    """Console entrypoint."""
     return main(None)
 
 

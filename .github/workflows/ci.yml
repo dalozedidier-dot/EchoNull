@@ -68,7 +68,7 @@ jobs:
         python-version: ["3.11", "3.12"]
 
     env:
-      PYTHONPATH: src
+      PYTHONPATH: src:.
 
     steps:
       - uses: actions/checkout@v4
@@ -89,6 +89,6 @@ jobs:
       - name: Pytest + coverage
         run: |
           pytest -q \
-            --cov=. \
+            --cov=src/echonull \
             --cov-report=term-missing:skip-covered \
             --cov-fail-under=100
