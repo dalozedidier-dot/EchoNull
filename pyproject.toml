@@ -54,11 +54,7 @@ target-version = ["py311"]
 line-length = 100
 target-version = "py311"
 fix = false
-
-# Make src-layout explicit for Ruff
 src = ["src"]
-
-# Avoid linting noise from scratch/artefact folders
 extend-exclude = ["mnt", "tools", "_ci_out", "build", "dist", ".venv"]
 
 [tool.ruff.lint]
@@ -66,8 +62,17 @@ select = ["E", "F", "I", "B", "N", "UP", "SIM", "C4", "RUF"]
 ignore = []
 mccabe.max-complexity = 10
 
+# New-style Ruff/isort configuration
 [tool.ruff.lint.isort]
 known-first-party = ["echonull", "benchmarks"]
+known-third-party = ["pytest"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+# Compatibility for older Ruff configurations (harmless on 0.6.9)
+[tool.ruff.isort]
+known-first-party = ["echonull", "benchmarks"]
+known-third-party = ["pytest"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
 [tool.mypy]
 python_version = "3.11"
