@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import importlib
-import json
-import runpy
 import sys
+import json
 from types import SimpleNamespace
 from typing import Any
 
@@ -19,10 +17,7 @@ def test_null_trace_missing_dependency(
     def boom(_name: str) -> Any:
         raise ModuleNotFoundError("nulltrace")
 
-    monkeypatch.setattr(
-        "echonull.null_trace.importlib.import_module",
-        boom,
-    )
+    monkeypatch.setattr("echonull.null_trace.importlib.import_module", boom)
     rc = null_trace.main([])
     assert rc == 2
     out = capsys.readouterr().out.lower()
@@ -34,10 +29,7 @@ def test_null_trace_available_json(
     capsys: CaptureFixture[str],
 ) -> None:
     dummy = SimpleNamespace(__version__="0.0.0")
-    monkeypatch.setattr(
-        "echonull.null_trace.importlib.import_module",
-        lambda _name: dummy,
-    )
+    monkeypatch.setattr("echonull.null_trace.importlib.import_module", lambda _name: dummy)
 
     rc = null_trace.main(["--json"])
     assert rc == 0
@@ -52,10 +44,7 @@ def test_null_trace_available_default_prints(
     capsys: CaptureFixture[str],
 ) -> None:
     dummy = SimpleNamespace()  # no __version__
-    monkeypatch.setattr(
-        "echonull.null_trace.importlib.import_module",
-        lambda _name: dummy,
-    )
+    monkeypatch.setattr("echonull.null_trace.importlib.import_module", lambda _name: dummy)
 
     rc = null_trace.main([])
     assert rc == 0
@@ -69,10 +58,7 @@ def test_null_trace_quiet(
     capsys: CaptureFixture[str],
 ) -> None:
     dummy = SimpleNamespace(__version__="0.0.0")
-    monkeypatch.setattr(
-        "echonull.null_trace.importlib.import_module",
-        lambda _name: dummy,
-    )
+    monkeypatch.setattr("echonull.null_trace.importlib.import_module", lambda _name: dummy)
 
     rc = null_trace.main(["--quiet"])
     assert rc == 0
@@ -80,26 +66,13 @@ def test_null_trace_quiet(
     assert out == ""
 
 
-def test_null_trace_main_guard_executes(monkeypatch: MonkeyPatch) -> None:
-    def boom(_name: str) -> Any:
-        raise ModuleNotFoundError("nulltrace")
+def test_null_trace_cli_main_delegates(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setattr("echonull.null_trace.main", lambda _argv: 7)
+    monkeypatch.setattr(sys, "argv", ["echonull-null-trace", "--quiet"])
 
-    monkeypatch.setattr(importlib, "import_module", boom)
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["echonull-null-trace", "--quiet"],
-    )
-
-    # Some implementations raise SystemExit, some don't.
     try:
-        runpy.run_module("echonull.null_trace", run_name="__main__")
+        rc: Any = null_trace.cli_main()
     except SystemExit as exc:
-        code = exc.code
-        if code is None:
-            code_i = 0
-        elif isinstance(code, int):
-            code_i = code
-        else:
-            code_i = 1
-        assert code_i in (0, 2)
+        rc = exc.code
+
+    assert rc == 7

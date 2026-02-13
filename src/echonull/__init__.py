@@ -1,14 +1,5 @@
 from __future__ import annotations
 
-from importlib import metadata
+from .incoherence import compute_incoherence
 
-
-def _get_version() -> str:
-    try:
-        return metadata.version("echonull")
-    except metadata.PackageNotFoundError:
-        # Running from a source checkout without an installed distribution.
-        return "0.0.0"
-
-
-__version__ = _get_version()
+__all__ = ["compute_incoherence"]
