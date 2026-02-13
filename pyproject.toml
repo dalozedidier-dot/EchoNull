@@ -1,3 +1,51 @@
+[build-system]
+requires = ["setuptools>=69", "wheel>=0.41"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "echonull"
+dynamic = ["version"]
+description = "Hear the silence. Trace the void. Reveal what should not exist."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "dalozedidier-dot" }]
+
+dependencies = [
+  "numpy>=2.0.0",
+  "pandas>=2.2.2",
+  "networkx>=3.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black==24.10.0",
+  "ruff==0.6.9",
+  "mypy==1.11.2",
+  "pytest==8.3.3",
+  "pytest-cov==5.0.0",
+  "types-setuptools",
+]
+
+[project.scripts]
+echonull-doctor = "echonull.cli.doctor:cli_main"
+echonull-null-trace = "echonull.null_trace:cli_main"
+
+[project.urls]
+Source = "https://github.com/dalozedidier-dot/EchoNull"
+Issues = "https://github.com/dalozedidier-dot/EchoNull/issues"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["echonull*"]
+
+[tool.setuptools.dynamic]
+version = { file = ["VERSION"] }
+
 [tool.black]
 line-length = 100
 target-version = ["py311"]
@@ -5,8 +53,11 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-# Make src-layout explicit for Ruff (newer versions)
+fix = false
+
+# Make src-layout explicit for Ruff
 src = ["src"]
+
 # Avoid linting noise from scratch/artefact folders
 extend-exclude = ["mnt", "tools", "_ci_out", "build", "dist", ".venv"]
 
@@ -15,7 +66,6 @@ select = ["E", "F", "I", "B", "N", "UP", "SIM", "C4", "RUF"]
 ignore = []
 mccabe.max-complexity = 10
 
-# Ruff/isort config (newer Ruff)
 [tool.ruff.lint.isort]
 known-first-party = ["echonull", "benchmarks"]
 
