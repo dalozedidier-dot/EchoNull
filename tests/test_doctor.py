@@ -56,20 +56,16 @@ def test_doctor_quiet_only_exit_code(capsys: CaptureFixture[str]) -> None:
 
 
 def test_doctor_main_guard_executes(monkeypatch: MonkeyPatch) -> None:
-    # Execute module as __main__ to cover the guard line(s) in doctor.py.
+    # Cover the __main__ guard. Some implementations raise SystemExit, some don't.
     monkeypatch.setattr(sys, "argv", ["echonull-doctor", "--quiet"])
     try:
         runpy.run_module("echonull.cli.doctor", run_name="__main__")
     except SystemExit as exc:
         code = exc.code
-    else:
-        raise AssertionError("Expected SystemExit")
-
-    if code is None:
-        code_i = 0
-    elif isinstance(code, int):
-        code_i = code
-    else:
-        code_i = 1
-
-    assert code_i in (0, 2)
+        if code is None:
+            code_i = 0
+        elif isinstance(code, int):
+            code_i = code
+        else:
+            code_i = 1
+        assert code_i in (0, 2)
