@@ -80,6 +80,19 @@ def test_null_trace_quiet(
     assert out == ""
 
 
+def test_null_trace_cli_main_delegates(monkeypatch: MonkeyPatch) -> None:
+    # Cover cli_main() (this is the remaining uncovered line in coverage).
+    monkeypatch.setattr("echonull.null_trace.main", lambda _argv: 7)
+    monkeypatch.setattr(sys, "argv", ["echonull-null-trace", "--quiet"])
+
+    try:
+        rc: Any = null_trace.cli_main()
+    except SystemExit as exc:
+        rc = exc.code
+
+    assert rc == 7
+
+
 def test_null_trace_main_guard_executes(monkeypatch: MonkeyPatch) -> None:
     def boom(_name: str) -> Any:
         raise ModuleNotFoundError("nulltrace")
@@ -90,6 +103,9 @@ def test_null_trace_main_guard_executes(monkeypatch: MonkeyPatch) -> None:
         "argv",
         ["echonull-null-trace", "--quiet"],
     )
+
+    # Avoid runpy warning about module already being imported earlier in the test run.
+    sys.modules.pop("echonull.null_trace", None)
 
     try:
         runpy.run_module("echonull.null_trace", run_name="__main__")
